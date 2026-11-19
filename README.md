@@ -1,4 +1,4 @@
-# Free-Tier & 1M+ Context AI/LLM APIs Benchmark (11,381 Models Indexed)
+﻿# Free-Tier & 1M+ Context AI/LLM APIs Benchmark (11,381 Models Indexed)
 
 > Programmatically normalized from OpenRouter, LiteLLM, models.dev & Ollama using **Polars + DuckDB**.
 > - **Total Models Indexed:** `11,381` across `359` providers
@@ -43,3 +43,9 @@
 | DeepSeek V4.1 Flash 1017 | `engy` | Open-Source | $0.030 | $0.120 | $0.052 | 1,048,576 |
 | Qwen3.7 Flash | `alibaba` | SaaS | $0.030 | $0.130 | $0.055 | 1,000,000 |
 | Qwen3.7 Flash | `commandcode` | SaaS | $0.030 | $0.130 | $0.055 | 1,000,000 |
+
+### All 3 Live Products on Data Oracle Labs (https://oraclepantheon.gumroad.com/)
+- **Free Lead Magnet ($0+):** [Top 100 Free-Tier AI & LLM APIs CSV/JSON](https://oraclepantheon.gumroad.com/l/xybabz)
+- **Pro Warehouse ($49):** [AI & LLM API Intelligence Catalog (11,381 Models — DuckDB, Parquet, CSV + Notion OS)](https://oraclepantheon.gumroad.com/l/brrfby)
+- **B2B Monetization Kit ($79):** [W.F.P. B2B Lead Scoring & Anti-Babol LLM Gateway Kit (Python + Polars)](https://oraclepantheon.gumroad.com/l/lhkol)
+
