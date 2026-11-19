@@ -90,6 +90,32 @@ describe("BenchmarkCatalog & LLMModel Domain Tests", () => {
     expect(stats.freeTierCount).toBeGreaterThan(10);
     expect(stats.millionPlusContextCount).toBeGreaterThan(50);
   });
+
+  it("should compute Pareto Frontier and code snippets", () => {
+    const frontier = defaultCatalog.getParetoFrontier();
+    expect(frontier.length).toBeGreaterThan(0);
+    expect(frontier[0].slug).toBe("google/gemini-exp-1206");
+
+    const model = defaultCatalog.findBySlug("google/gemini-exp-1206");
+    expect(model).toBeDefined();
+    if (model) {
+      expect(model.generatePythonSnippet()).toContain("OpenAI");
+      expect(model.generateCurlSnippet()).toContain("curl");
+      expect(model.generateTypeScriptSnippet()).toContain("fetch");
+    }
+  });
+
+  it("should compare two models side by side", () => {
+    const modelA = defaultCatalog.findBySlug("google/gemini-exp-1206")!;
+    const modelB = defaultCatalog.findBySlug("kyma/glm-5.3")!;
+    const comparison = defaultCatalog.compareModels(modelA, modelB);
+
+    expect(comparison.modelA.slug).toBe(modelA.slug);
+    expect(comparison.modelB.slug).toBe(modelB.slug);
+    expect(comparison.contextDeltaTokens).toBeGreaterThan(0);
+    expect(comparison.costDeltaBlendedPer1M).toBeLessThan(0);
+    expect(comparison.verdict).toContain("gemini-exp-1206");
+  });
 });
 
 describe("ChatSession & Assistant Tests", () => {

@@ -130,6 +130,88 @@ export class LLMModel {
   }
 
   /**
+   * Generates a ready-to-run cURL command for this model.
+   */
+  generateCurlSnippet(apiKey = "YOUR_API_KEY"): string {
+    const isGoogle = this.provider.toLowerCase() === "google";
+    const endpoint = isGoogle
+      ? `https://generativelanguage.googleapis.com/v1beta/models/${this.toolName}:generateContent?key=${apiKey}`
+      : "https://openrouter.ai/api/v1/chat/completions";
+
+    if (isGoogle) {
+      return `curl -X POST "${endpoint}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "contents": [{ "parts": [{ "text": "Cześć! Opowiedz o swoich możliwościach." }] }]
+  }'`;
+    }
+
+    return `curl -X POST "${endpoint}" \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${this.slug}",
+    "messages": [
+      { "role": "user", "content": "Witaj! Przetestujmy okno kontekstowe ${this.contextWindowTokens.toLocaleString()} tokenów." }
+    ]
+  }'`;
+  }
+
+  /**
+   * Generates production-ready Python code snippet (using LiteLLM / OpenAI client).
+   */
+  generatePythonSnippet(apiKey = "YOUR_API_KEY"): string {
+    return `import os
+from openai import OpenAI
+
+# Endpoint: ${this.toolName} (${this.provider})
+# Max Context: ${this.contextWindowTokens.toLocaleString()} tokens | Blended: $${this.blendedCostPer1M}/1M
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ.get("OPENROUTER_API_KEY", "${apiKey}"),
+)
+
+response = client.chat.completions.create(
+    model="${this.slug}",
+    messages=[
+        {"role": "system", "content": "You are a specialized AI assistant."},
+        {"role": "user", "content": "Jakie są Twoje kluczowe parametry i okno kontekstu?"},
+    ],
+    temperature=0.7,
+)
+
+print(response.choices[0].message.content)
+`;
+  }
+
+  /**
+   * Generates production-ready TypeScript code snippet.
+   */
+  generateTypeScriptSnippet(apiKey = "YOUR_API_KEY"): string {
+    return `// Model: ${this.toolName} (${this.provider})
+// Context: ${this.contextWindowTokens.toLocaleString()} tokens
+async function callModel() {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + (process.env.OPENROUTER_API_KEY || "${apiKey}"),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "${this.slug}",
+      messages: [{ role: "user", content: "Witaj! Sprawdźmy wydajność API." }],
+    }),
+  });
+
+  const data = await response.json();
+  console.log(data.choices[0]?.message?.content);
+}
+
+callModel();
+`;
+  }
+
+  /**
    * Parses a single row from the CSV into an LLMModel instance.
    */
   static fromCSVRow(row: Record<string, string>): LLMModel {

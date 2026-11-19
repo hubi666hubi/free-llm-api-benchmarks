@@ -77,13 +77,33 @@ npm test
 npm run build
 ```
 
-### 2. Python SDK (`python/`)
-- **`LLMModel` & `BenchmarkCatalog` (`python/benchmark_catalog.py`)**: Data models, CSV ingestion, ranking and querying.
+### 2. Python SDK & CLI (`python/`)
+- **`LLMModel` & `BenchmarkCatalog` (`python/benchmark_catalog.py`)**: Data models, CSV ingestion, ranking, Pareto frontier computation, and code snippet generation.
 - **`CostArbitrageEngine` (`python/benchmark_catalog.py`)**: Quantifies open-weights savings vs proprietary SaaS baselines and computes token bill projections.
+- **`python.cli` (`python/cli.py`)**: Comprehensive terminal CLI tool.
 
 ```bash
+# Run Python CLI queries
+python3 -m python.cli top -n 10
+python3 -m python.cli cheapest --min-context 1000000
+python3 -m python.cli pareto
+python3 -m python.cli snippet google/gemini-exp-1206 --lang python
+python3 -m python.cli stats
+
 # Run Python unit tests
 python3 -m unittest discover -s python
 ```
+
+---
+
+## Maxi Maxi Pro Features
+
+- **⭐ Global Pareto Frontier Engine**: Identifies mathematically non-dominated models in context window vs token cost.
+- **Side-by-side Model Comparison**: Direct visual delta analysis (context token delta, cost delta, tool & reasoning parity, analytical verdict).
+- **Instant Code Snippet Generator**: 1-click production-ready client snippets for Python (`OpenAI` / `LiteLLM`), TypeScript (`fetch`), and `cURL`.
+- **Gemini Chat & Oracle Agent**: Offline catalog assistant + Google Gemini v1beta API integration with markdown streaming and prompt pills.
+- **Provider Intelligence Overview**: Aggregated capability metrics across all 33+ providers.
+- **Interactive Arbitrage & ROI Calculator**: Monthly token volume slider (1M–100M tokens/month) projecting net savings against proprietary SaaS rates.
+
 
 

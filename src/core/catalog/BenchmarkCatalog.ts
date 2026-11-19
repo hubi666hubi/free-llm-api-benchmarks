@@ -44,6 +44,17 @@ export interface ModelRequirements {
   preferOpenWeights?: boolean;
 }
 
+export interface ModelComparison {
+  modelA: LLMModel;
+  modelB: LLMModel;
+  contextDeltaTokens: number;
+  costDeltaBlendedPer1M: number;
+  percentCheaperA: number;
+  toolsMatch: boolean;
+  reasoningMatch: boolean;
+  verdict: string;
+}
+
 export class BenchmarkCatalog {
   private readonly _models: LLMModel[];
 
@@ -270,5 +281,87 @@ export class BenchmarkCatalog {
       }
       return b.contextWindowTokens - a.contextWindowTokens;
     });
+  }
+
+  /**
+   * Calculates the global Pareto Frontier (trade-off between Context Window and Blended Cost).
+   * A model is Pareto-optimal if no other model offers both strictly lower/equal cost AND higher/equal context.
+   */
+  getParetoFrontier(): LLMModel[] {
+    const frontier: LLMModel[] = [];
+
+    for (const candidate of this._models) {
+      let isDominated = false;
+
+      for (const other of this._models) {
+        if (candidate.slug === other.slug) continue;
+
+        // other has lower or equal cost AND higher or equal context
+        const costBetterOrEqual = other.blendedCostPer1M <= candidate.blendedCostPer1M;
+        const contextBetterOrEqual = other.contextWindowTokens >= candidate.contextWindowTokens;
+        const strictlyBetter =
+          other.blendedCostPer1M < candidate.blendedCostPer1M ||
+          other.contextWindowTokens > candidate.contextWindowTokens;
+
+        if (costBetterOrEqual && contextBetterOrEqual && strictlyBetter) {
+          isDominated = true;
+          break;
+        }
+      }
+
+      if (!isDominated) {
+        frontier.push(candidate);
+      }
+    }
+
+    return frontier.sort((a, b) => b.contextWindowTokens - a.contextWindowTokens);
+  }
+
+  /**
+   * Compares two models side-by-side with economic and technical verdict.
+   */
+  compareModels(modelA: LLMModel, modelB: LLMModel): ModelComparison {
+    const contextDelta = modelA.contextWindowTokens - modelB.contextWindowTokens;
+    const costDelta = modelA.blendedCostPer1M - modelB.blendedCostPer1M;
+    const percentCheaper =
+      modelB.blendedCostPer1M > 0
+        ? Number((((modelB.blendedCostPer1M - modelA.blendedCostPer1M) / modelB.blendedCostPer1M) * 100).toFixed(2))
+        : 0;
+
+    let verdict = "";
+    if (modelA.blendedCostPer1M < modelB.blendedCostPer1M && modelA.contextWindowTokens >= modelB.contextWindowTokens) {
+      verdict = `${modelA.toolName} dominuje w relacji cena/kontekst (${Math.abs(percentCheaper)}% taniej przy równym lub większym oknie).`;
+    } else if (modelA.contextWindowTokens > modelB.contextWindowTokens) {
+      verdict = `${modelA.toolName} oferuje o ${contextDelta.toLocaleString()} tokenów większe okno kontekstowe.`;
+    } else if (percentCheaper > 0) {
+      verdict = `${modelA.toolName} jest o ${percentCheaper}% tańszy w przetwarzaniu tokenów.`;
+    } else {
+      verdict = `${modelB.toolName} oferuje korzystniejsze parametry kosztowe lub pojemnościowe.`;
+    }
+
+    return {
+      modelA,
+      modelB,
+      contextDeltaTokens: contextDelta,
+      costDeltaBlendedPer1M: Number(costDelta.toFixed(6)),
+      percentCheaperA: percentCheaper,
+      toolsMatch: modelA.supportsToolCall === modelB.supportsToolCall,
+      reasoningMatch: modelA.supportsReasoning === modelB.supportsReasoning,
+      verdict,
+    };
+  }
+
+  /**
+   * Groups models by provider name.
+   */
+  getModelsByProvider(): Record<string, LLMModel[]> {
+    const grouped: Record<string, LLMModel[]> = {};
+    for (const m of this._models) {
+      if (!grouped[m.provider]) {
+        grouped[m.provider] = [];
+      }
+      grouped[m.provider].push(m);
+    }
+    return grouped;
   }
 }

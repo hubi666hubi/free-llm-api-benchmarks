@@ -78,6 +78,41 @@ class LLMModel:
             or any(q in m.lower() for m in self.supported_models)
         )
 
+    def generate_python_snippet(self, api_key: str = "YOUR_API_KEY") -> str:
+        """Generates OpenAI-compatible Python client snippet."""
+        return f'''from openai import OpenAI
+
+# Model: {self.tool_name} ({self.provider})
+# Context Window: {self.context_window_tokens:,} tokens | Blended: ${self.blendedCost_or_zero:.4f}/1M
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key="{api_key}",
+)
+
+response = client.chat.completions.create(
+    model="{self.slug}",
+    messages=[
+        {{"role": "user", "content": "Hello! Testing context window {self.context_window_tokens:,} tokens."}}
+    ],
+)
+print(response.choices[0].message.content)
+'''
+
+    def generate_curl_snippet(self, api_key: str = "YOUR_API_KEY") -> str:
+        """Generates cURL command snippet."""
+        return f'''curl -X POST "https://openrouter.ai/api/v1/chat/completions" \\
+  -H "Authorization: Bearer {api_key}" \\
+  -H "Content-Type: application/json" \\
+  -d '{{
+    "model": "{self.slug}",
+    "messages": [{{"role": "user", "content": "Benchmark test"}}]
+  }}'
+'''
+
+    @property
+    def blendedCost_or_zero(self) -> float:
+        return self.blended_cost_per_1m_usd
+
     @classmethod
     def from_csv_row(cls, row: Dict[str, str]) -> LLMModel:
         """Parses a CSV dictionary row into an LLMModel instance."""
@@ -199,6 +234,29 @@ class BenchmarkCatalog:
             and m.context_window_tokens >= min_context
         ]
         return sorted(filtered, key=lambda m: m.blended_cost_per_1m_usd)[:limit]
+
+    def get_pareto_frontier(self) -> List[LLMModel]:
+        """
+        Calculates Pareto-optimal models based on context window vs blended cost.
+        """
+        frontier: List[LLMModel] = []
+        for candidate in self._models:
+            dominated = False
+            for other in self._models:
+                if other.slug == candidate.slug:
+                    continue
+                cost_better = other.blended_cost_per_1m_usd <= candidate.blended_cost_per_1m_usd
+                ctx_better = other.context_window_tokens >= candidate.context_window_tokens
+                strictly_better = (
+                    other.blended_cost_per_1m_usd < candidate.blended_cost_per_1m_usd
+                    or other.context_window_tokens > candidate.context_window_tokens
+                )
+                if cost_better and ctx_better and strictly_better:
+                    dominated = True
+                    break
+            if not dominated:
+                frontier.append(candidate)
+        return sorted(frontier, key=lambda m: m.context_window_tokens, reverse=True)
 
     def filter(
         self,

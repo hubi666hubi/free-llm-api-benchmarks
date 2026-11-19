@@ -75,6 +75,20 @@ class TestBenchmarkCatalog(unittest.TestCase):
         self.assertEqual(proj["target_model_cost_usd"], 0.0)
         self.assertEqual(proj["net_monthly_savings_usd"], 30.0)
 
+    def test_pareto_frontier(self):
+        frontier = self.catalog.get_pareto_frontier()
+        self.assertGreater(len(frontier), 0)
+        self.assertEqual(frontier[0].slug, "google/gemini-exp-1206")
+
+    def test_code_snippets(self):
+        model = self.catalog.find_by_slug("google/gemini-exp-1206")
+        self.assertIsNotNone(model)
+        py_snippet = model.generate_python_snippet()
+        self.assertIn("OpenAI", py_snippet)
+        self.assertIn("google/gemini-exp-1206", py_snippet)
+        curl_snippet = model.generate_curl_snippet()
+        self.assertIn("curl", curl_snippet)
+
 
 if __name__ == "__main__":
     unittest.main()
