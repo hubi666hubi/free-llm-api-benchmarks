@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { GeminiChatView, ChatMessage } from "./GeminiChatView";
 
 export function ChatPageExample() {

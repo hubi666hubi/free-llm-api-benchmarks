@@ -49,3 +49,41 @@
 - **Pro Warehouse ($49):** [AI & LLM API Intelligence Catalog (11,381 Models — DuckDB, Parquet, CSV + Notion OS)](https://oraclepantheon.gumroad.com/l/brrfby)
 - **B2B Monetization Kit ($79):** [W.F.P. B2B Lead Scoring & Anti-Babol LLM Gateway Kit (Python + Polars)](https://oraclepantheon.gumroad.com/l/lhkol)
 
+---
+
+## Architecture & Class Modules
+
+The repository provides production-grade class modules and SDKs in both **TypeScript** and **Python**:
+
+### 1. TypeScript / React Stack (`src/core/`)
+- **`LLMModel` (`src/core/models/LLMModel.ts`)**: Domain entity with cost estimation, arbitrage metrics (`calculateArbitrageVs`), and fuzzy search.
+- **`BenchmarkCatalog` (`src/core/catalog/BenchmarkCatalog.ts`)**: In-memory querying, filtering (context, tools, reasoning), rankings, and provider aggregations.
+- **`ChatSession` (`src/core/chat/ChatSession.ts`)**: Reactive conversation session with token estimation and change listeners.
+- **`GeminiProvider` & `MockCatalogAssistantProvider` (`src/core/chat/`)**: Multi-provider support (live Google Gemini API + offline catalog oracle assistant).
+- **`LLMClient` & `BenchmarkAssistantAgent` (`src/core/chat/`)**: High-level agent orchestrator.
+- **`GeminiChatView` (`src/components/GeminiChatView.tsx`)**: High-fidelity dark mode Gemini UI with custom markdown renderer.
+
+```bash
+# Install dependencies
+npm install
+
+# Run dev server with Gemini UI & Catalog Explorer
+npm run dev
+
+# Run Vitest unit tests
+npm test
+
+# Build production bundle
+npm run build
+```
+
+### 2. Python SDK (`python/`)
+- **`LLMModel` & `BenchmarkCatalog` (`python/benchmark_catalog.py`)**: Data models, CSV ingestion, ranking and querying.
+- **`CostArbitrageEngine` (`python/benchmark_catalog.py`)**: Quantifies open-weights savings vs proprietary SaaS baselines and computes token bill projections.
+
+```bash
+# Run Python unit tests
+python3 -m unittest discover -s python
+```
+
+

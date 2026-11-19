@@ -3,6 +3,31 @@
   "name": "Explain how this project works po",
   "createdAt": "2026-11-19T10:37:14.219Z",
   "filename": "6416b5e8-afe3-4469-9951-a43aa38203f3.json",
-  "geminiStarted": false,
-  "messages": []
+  "geminiStarted": true,
+  "messages": [
+    {
+      "id": "c003fd5f-539f-4574-9667-50693243fa5f",
+      "role": "agent",
+      "content": "Projekt składa się obecnie z dwóch głównych obszarów: **bazy danych i benchmarków modeli LLM** oraz **komponentu interfejsu czatu w React**:\n\n---\n\n### 1. Warstwa Danych & Benchmarki (Katalog LLM)\n* **[README.md](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/README.md)** – zestawienie i tabele porównawcze:\n  * Top 15 darmowych modeli z największym oknem kontekstowym (do 2M tokenów).\n  * Top 10 najtańszych modeli 1M+ z obsługą *Tool Calling* i *Reasoning*.\n  * Linki komercyjne do bazy Gumroad (katalog 11 381 modeli).\n* **[free_tier_llm_apis_top100.csv](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/free_tier_llm_apis_top100.csv)** – gotowy plik CSV zawierający zindeksowane Top 100 darmowych modeli AI (ceny, dostawcy, limity tokenów, wsparcie narzędzi).\n* **[DATA_DICTIONARY.md](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/DATA_DICTIONARY.md)** – dokumentacja struktury danych (`ai_llm_api_catalog` oraz `provider_summary`).\n\n---\n\n### 2. Frontend / UI (Komponenty React)\nW ostatnim kroku na podstawie zrzutu ekranu został zaimplementowany dedykowany komponent czatu w stylu Google Gemini (Dark theme):\n* **[GeminiChatView.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/components/GeminiChatView.tsx)**:\n  * Kompletny, w pełni otypowany komponent w TypeScript (oparty o klasy Tailwind CSS).\n  * Mobilny pasek górny (menu hamburger, tytuł, przycisk zamknięcia).\n  * Kontener wiadomości z automatycznym i manualnym przewijaniem na dół (przycisk skrótu).\n  * Wbudowany lekki parser markdown (`FormattedMessage` bez ciężkich zależności zewnętrznych: nagłówki, listy punktowane, pogrubienia, kod).\n  * Pole tekstowe z auto-resize, przycisk akcji/załącznika kontekstu oraz wysyłki.\n  * Stopka z informacją prawną (*disclaimer*).\n* **[GeminiChatView.example.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/components/GeminiChatView.example.tsx)** – przykład implementacji ze stanem wiadomości.\n* **[index.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/components/index.ts)** & **[components/GeminiChatView.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/components/GeminiChatView.tsx)** – re-eksporty ułatwiające import w projekcie.\n\n---\n\n### 3. Czego obecnie brakuje do pełnego uruchomienia?\n* **Środowisko Node / bundler**: W repozytorium nie ma jeszcze pliku `package.json`, konfiguracji Vite / Next.js ani Tailwind CSS – komponenty istnieją jako czyste pliki `.tsx`.\n* **Połączenie z backendem / danymi**: Czat nie jest jeszcze spięty z żadnym API (np. darmowym kluczem Gemini / OpenRouter) ani z danymi z pliku CSV.\n\n---\n\n### W którą stronę idziemy dalej?\n1. **Skonfigurować aplikację webową (np. Vite + React + Tailwind)**, aby można było uruchomić podgląd czatu na żywo w przeglądarce?\n2. **Podpiąć backend / API** (np. podłączenie rzeczywistego modelu AI do czatu)?\n3. **Zbudować interfejs przeglądarki danych** (tabela / wyszukiwarka modeli z pliku `free_tier_llm_apis_top100.csv`)?",
+      "status": "completed",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "350e799c-3f57-4d55-b038-e710c1da4dd4",
+      "created_at": "2026-11-19T19:32:42.198Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "a47f23ab-0f76-4c9b-9b24-da5b8e806fea",
+      "role": "user",
+      "content": "zaimplementuj moduły klas dokoncz calosc i zrób finalna wersje na gita.",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-19T19:32:42.199Z",
+      "sender": "ios",
+      "is_cancelled": false
+    }
+  ]
 }
