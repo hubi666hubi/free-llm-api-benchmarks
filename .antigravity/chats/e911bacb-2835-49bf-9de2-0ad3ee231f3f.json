@@ -220,6 +220,54 @@
       "created_at": "2026-11-20T18:13:08.808Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "e1cf1082-ad50-4229-922b-8f7b0f9b6489",
+      "role": "agent",
+      "content": "Ogarnięte — masz zarówno **dobór najlepszych lokalnych modeli + gotowy `Modelfile`** pod architekturę heksagonalną, jak i **kompletny heksagonalny adapter Ollama** wpięty w projekt z testami kontraktowymi i routingiem Local-First.\n\n---\n\n### 1. Najlepszy model Ollama pod architektury heksagonalne (wg sprzętu)\n\nDo architektury (porty, granice domenowe, wieloplikowy refaktoring) kluczowe są dwie rzeczy: **model koderski o mocnym rozumowaniu strukturalnym** oraz **ręcznie podbite okno kontekstowe `num_ctx` (32k–64k)**, bo domyślne 4K w Ollamie ucina zależności między plikami.\n\n| Sprzęt (RAM / VRAM) | Model Ollama | Zalecane `num_ctx` | Dlaczego pod Hexagonal |\n| :--- | :--- | :---: | :--- |\n| **24 GB VRAM / 32 GB Mac** *(Sweet Spot)* | **`qwen3-coder:30b`** | `32768` | MoE (natywnie 256K ctx) — najlepszy balans szybkości, tool-callingu i pilnowania granic `core/` ↔ `adapters/`. |\n| **12–16 GB VRAM** | **`qwen2.5-coder:14b`** | `32768` | Bardzo czysty TypeScript/Python, świetne DTO, interfejsy i structured JSON outputs. |\n| **8 GB VRAM** *(laptop)* | **`qwen2.5-coder:7b`** | `16384` | Szybki do rozbijania portów, adapterów i testów kontraktowych. |\n| **64 GB+ RAM / Multi-GPU** | **`qwen3-coder-next`** | `65536` | Flagowy MoE (~80B) — ogarnia całe repozytoria, grafy zależności i ADR-y w jednym oknie. |\n| **16 GB VRAM** *(alternatywa)* | **`deepseek-coder-v2:16b`** | `32768` | Mocny reasoning nad zależnościami i rozbijaniem monolitu. |\n\nGotowy [Modelfile.hexagonal](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/ollama/Modelfile.hexagonal) (z `num_ctx 32768`, `temperature 0.2` i promptem systemowym pilnującym Dependency Rule, ACL i testów kontraktowych) uruchomisz lokalnie w 3 krokach:\n\n```bash\nollama pull qwen3-coder:30b\nollama create hex-architect -f ollama/Modelfile.hexagonal\nOLLAMA_ORIGINS=\"*\" ollama serve\n```\n\n*(Jeśli masz mniej VRAM, podmień pierwszą linię `FROM` w [Modelfile.hexagonal](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/ollama/Modelfile.hexagonal) na `qwen2.5-coder:14b` lub `7b`.)*\n\n---\n\n### 2. Co zostało wdrożone w architekturze heksagonalnej repozytorium\n\n- **Czyste porty w `core/` (zero zależności od `adapters/` i `fetch`)**\n  - [LLMProvider.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/chat/LLMProvider.ts): nowy port `ILocalLLMProvider`, typy domenowe `LocalModelInfo` i `ProviderHealth`, rozszerzone `LLMGenerateOptions` (`numCtx`, `format` pod JSON Schema, `seed`, `topP`, `keepAlive`), presety `RECOMMENDED_HEXAGONAL_OLLAMA_MODELS` i `HEXAGONAL_ARCHITECT_SYSTEM_PROMPT`.\n  - [interfaces.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/di/interfaces.ts) & [tokens.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/di/tokens.ts): konfiguracja `IOllamaConfig`, tokeny `OllamaConfig` / `OllamaProvider`, opcjonalne `get()` i `timeoutMs` w porcie `IHttpClient`.\n- **Driven Adapter Ollama + Anti-Corruption Layer w `adapters/`**\n  - [OllamaProvider.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/adapters/OllamaProvider.ts): implementuje `ILocalLLMProvider` wyłącznie przez wstrzyknięty `IHttpClient` i `IClock`. Obsługuje `/api/chat` (w tym `num_ctx`, structured `format`, `keep_alive`), `/api/tags` (mapowanie wire-formatu na czyste `LocalModelInfo[]`), `/api/version` (`checkHealth()` z deterministyczną latencją) oraz czytelne błędy (np. podpowiedź `ollama pull <model>` przy 404 i `OLLAMA_ORIGINS=\"*\"` przy braku połączenia).\n  - [FetchHttpClient.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/adapters/FetchHttpClient.ts): dodane `get()` i obsługa `timeoutMs` przez `AbortController`.\n- **Suwerenny routing Local-First i Composition Root**\n  - [LLMClient.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/chat/LLMClient.ts): łańcuch priorytetów `providers[]` z automatycznym fallbackiem **Ollama (Local) → Google Gemini API → Wbudowany Asystent Bazy (Offline)**.\n  - [BenchmarkAssistantAgent.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/chat/BenchmarkAssistantAgent.ts): metody `configureOllama()`, `checkOllamaHealth()` i `listOllamaModels()` oparte wyłącznie na porcie `ILocalLLMProvider`.\n  - [bootstrap.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/adapters/bootstrap.ts) & [index.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/adapters/index.ts): pełne okablowanie DI i eksport `OllamaProvider`.\n- **Panel ustawień w UI**\n  - [App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx): w modalu **Ustawienia Silnika AI** możesz włączyć Ollamę, ustawić URL i `num_ctx`, kliknąć **„Testuj i wykryj modele”** (pobiera lokalnie zainstalowane modele z `/api/tags`) albo wybrać jeden z presetów pod architekturę heksagonalną.\n- **Testy kontraktowe i weryfikacja czystości rdzenia**\n  - [llmProviderContract.test.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/__tests__/llmProviderContract.test.ts): wspólny kontrakt `ILLMProvider` odpalany na `OllamaProvider`, `GeminiProvider` i `MockCatalogAssistantProvider`, plus testy ACL, healthchecka, fallbacku 3-warstwowego i `FetchHttpClient`.\n\n### Weryfikacja\n- `npm test`: **81/81 testów przeszło** (w tym 18 testów czystości rdzenia w [purity.test.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/__tests__/purity.test.ts) oraz 16 nowych testów kontraktowych).\n- `npm run typecheck` i `npm run build`: czysto, bez błędów.\n\nZmiany są zapisane w repozytorium.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "4762bd34-dfb4-457d-ad07-e68ec74b3c68",
+      "created_at": "2026-11-20T18:18:57.310Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "34b69a73-3a97-49a7-bead-d6ceea8f4762",
+      "role": "user",
+      "content": "super",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T18:23:08.750Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "9538ffd2-a2d3-4f99-b780-07d2aa4234c2",
+      "role": "agent",
+      "content": "Super. Wszystko jest zapisane w repozytorium. Testy (81), typecheck i build przechodzą.\n\nNastępny krok to **zapis ustawień Ollamy** (URL, model, `num_ctx`) jako osobny port `KeyStore`/`SettingsStore` z adapterem `localStorage`. Dzięki temu konfiguracja przetrwa odświeżenie strony. Mam zacząć od niego?",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "34b69a73-3a97-49a7-bead-d6ceea8f4762",
+      "created_at": "2026-11-20T18:23:16.260Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "e855fa67-5ee4-4429-a282-b794dc9ce1bd",
+      "role": "user",
+      "content": "Tak to jest doskonałe.",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T18:26:50.446Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
