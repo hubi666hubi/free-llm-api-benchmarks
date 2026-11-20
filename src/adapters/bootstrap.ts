@@ -5,22 +5,26 @@ import {
   IIdGenerator,
   IHttpClient,
   IGeminiConfig,
+  IOllamaConfig,
   IBenchmarkCatalog,
   IChatSession,
   ILLMClient,
 } from "../core/di/interfaces";
 import { SystemClock, DefaultIdGenerator } from "../core/di/defaults";
 import { FetchHttpClient } from "./FetchHttpClient";
+import { OllamaProvider } from "./OllamaProvider";
 import { ChatSession } from "../core/chat/ChatSession";
 import { GeminiProvider } from "../core/chat/GeminiProvider";
 import { MockCatalogAssistantProvider } from "../core/chat/MockCatalogAssistantProvider";
 import { LLMClient } from "../core/chat/LLMClient";
 import { BenchmarkAssistantAgent } from "../core/chat/BenchmarkAssistantAgent";
+import { ILocalLLMProvider } from "../core/chat/LLMProvider";
 
 export interface ContainerBootstrapOptions {
   catalog?: IBenchmarkCatalog;
   geminiApiKey?: string;
   geminiConfig?: IGeminiConfig;
+  ollamaConfig?: IOllamaConfig;
   clock?: IClock;
   idGenerator?: IIdGenerator;
   httpClient?: IHttpClient;
@@ -43,6 +47,22 @@ export function createBenchmarkContainer(options: ContainerBootstrapOptions = {}
     defaultModel: "gemini-1.5-flash",
   };
   container.registerInstance<IGeminiConfig>(TOKENS.GeminiConfig, geminiConfig);
+
+  const ollamaConfig: IOllamaConfig = options.ollamaConfig
+    ? {
+        baseUrl: "http://localhost:11434",
+        defaultModel: "qwen3-coder:30b",
+        numCtx: 32768,
+        enabled: true,
+        ...options.ollamaConfig,
+      }
+    : {
+        baseUrl: "http://localhost:11434",
+        defaultModel: "qwen3-coder:30b",
+        numCtx: 32768,
+        enabled: false,
+      };
+  container.registerInstance<IOllamaConfig>(TOKENS.OllamaConfig, ollamaConfig);
 
   // Catalog
   if (options.catalog) {
@@ -68,6 +88,19 @@ export function createBenchmarkContainer(options: ContainerBootstrapOptions = {}
     );
   }
 
+  // Local Ollama Provider (Hexagonal Driven Adapter)
+  container.registerFactory<ILocalLLMProvider>(
+    TOKENS.OllamaProvider,
+    (c) => {
+      return new OllamaProvider(
+        c.resolve<IOllamaConfig>(TOKENS.OllamaConfig),
+        c.resolve<IHttpClient>(TOKENS.HttpClient),
+        c.resolve<IClock>(TOKENS.Clock)
+      );
+    },
+    { singleton: true }
+  );
+
   // Gemini Provider
   container.registerFactory<GeminiProvider>(
     TOKENS.GeminiProvider,
@@ -90,18 +123,18 @@ export function createBenchmarkContainer(options: ContainerBootstrapOptions = {}
     { singleton: true }
   );
 
-  // LLM Client
+  // LLM Client (Sovereign Local-First Routing: Ollama -> Gemini -> Offline Catalog Oracle)
   if (options.llmClient) {
     container.registerInstance<ILLMClient>(TOKENS.LLMClient, options.llmClient);
   } else {
     container.registerFactory<ILLMClient>(
       TOKENS.LLMClient,
       (c) => {
+        const ollama = c.resolve<ILocalLLMProvider>(TOKENS.OllamaProvider);
         const gemini = c.resolve<GeminiProvider>(TOKENS.GeminiProvider);
         const mock = c.resolve<MockCatalogAssistantProvider>(TOKENS.MockProvider);
         return new LLMClient({
-          primaryProvider: gemini.isAvailable() ? gemini : mock,
-          fallbackProvider: mock,
+          providers: [ollama, gemini, mock],
         });
       },
       { singleton: true }
@@ -116,6 +149,7 @@ export function createBenchmarkContainer(options: ContainerBootstrapOptions = {}
         session: c.resolve<IChatSession>(TOKENS.ChatSession),
         client: c.resolve<ILLMClient>(TOKENS.LLMClient),
         catalog: c.has(TOKENS.Catalog) ? c.resolve<IBenchmarkCatalog>(TOKENS.Catalog) : undefined,
+        ollamaProvider: c.resolve<ILocalLLMProvider>(TOKENS.OllamaProvider),
         geminiProvider: c.resolve<GeminiProvider>(TOKENS.GeminiProvider),
         mockProvider: c.resolve<MockCatalogAssistantProvider>(TOKENS.MockProvider),
       });

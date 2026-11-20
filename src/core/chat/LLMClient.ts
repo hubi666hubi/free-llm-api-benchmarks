@@ -2,39 +2,61 @@ import { ILLMProvider, LLMGenerateOptions } from "./LLMProvider";
 import { IChatSession, ILLMClient } from "../di/interfaces";
 
 export interface LLMClientConfig {
-  primaryProvider: ILLMProvider;
+  primaryProvider?: ILLMProvider;
   fallbackProvider?: ILLMProvider;
+  /** Ordered provider chain (e.g. [Ollama, Gemini, Mock]). Takes precedence if provided. */
+  providers?: ILLMProvider[];
 }
 
 export class LLMClient implements ILLMClient {
-  private primaryProvider: ILLMProvider;
-  private fallbackProvider?: ILLMProvider;
+  private providers: ILLMProvider[];
 
   constructor(config: LLMClientConfig) {
-    this.primaryProvider = config.primaryProvider;
-    this.fallbackProvider = config.fallbackProvider;
+    if (config.providers && config.providers.length > 0) {
+      this.providers = this.deduplicate(config.providers);
+    } else {
+      const list: ILLMProvider[] = [];
+      if (config.primaryProvider) list.push(config.primaryProvider);
+      if (config.fallbackProvider) list.push(config.fallbackProvider);
+      this.providers = this.deduplicate(list);
+    }
+  }
+
+  private deduplicate(list: ILLMProvider[]): ILLMProvider[] {
+    const seen = new Set<ILLMProvider>();
+    return list.filter((p) => {
+      if (seen.has(p)) return false;
+      seen.add(p);
+      return true;
+    });
+  }
+
+  setProviders(providers: ILLMProvider[]): void {
+    this.providers = this.deduplicate(providers);
   }
 
   setPrimaryProvider(provider: ILLMProvider): void {
-    this.primaryProvider = provider;
+    const rest = this.providers.filter((p) => p !== provider);
+    this.providers = [provider, ...rest];
   }
 
   setFallbackProvider(provider?: ILLMProvider): void {
-    this.fallbackProvider = provider;
+    const primary = this.providers[0];
+    if (!primary) {
+      this.providers = provider ? [provider] : [];
+      return;
+    }
+    const middle = this.providers.slice(1, -1).filter((p) => p !== provider);
+    this.providers = provider ? this.deduplicate([primary, ...middle, provider]) : [primary, ...middle];
   }
 
   getActiveProviderName(): string {
-    if (this.primaryProvider.isAvailable()) {
-      return this.primaryProvider.name;
-    }
-    if (this.fallbackProvider && this.fallbackProvider.isAvailable()) {
-      return this.fallbackProvider.name;
-    }
-    return "Brak dostępnego providera";
+    const active = this.providers.find((p) => p.isAvailable());
+    return active ? active.name : "Brak dostępnego providera";
   }
 
   /**
-   * Dispatches conversation to the active provider and handles fallback if needed.
+   * Dispatches conversation through the ordered provider chain with automatic fallback.
    */
   async dispatchMessage(session: IChatSession, options?: LLMGenerateOptions): Promise<string> {
     const messages = session.messages;
@@ -42,19 +64,30 @@ export class LLMClient implements ILLMClient {
       throw new Error("Brak wiadomości w sesji do wysłania.");
     }
 
-    let providerToUse = this.primaryProvider;
-    if (!providerToUse.isAvailable() && this.fallbackProvider && this.fallbackProvider.isAvailable()) {
-      providerToUse = this.fallbackProvider;
+    const available = this.providers.filter((p) => p.isAvailable());
+    if (available.length === 0) {
+      if (this.providers.length > 0) {
+        return await this.providers[0].sendMessage(messages, options);
+      }
+      throw new Error("Brak skonfigurowanego providera LLM.");
     }
 
-    try {
-      return await providerToUse.sendMessage(messages, options);
-    } catch (primaryError) {
-      if (this.fallbackProvider && providerToUse !== this.fallbackProvider && this.fallbackProvider.isAvailable()) {
-        console.warn("Primary provider failed, switching to fallback:", primaryError);
-        return await this.fallbackProvider.sendMessage(messages, options);
+    let lastError: unknown;
+    for (let i = 0; i < available.length; i++) {
+      const provider = available[i];
+      try {
+        return await provider.sendMessage(messages, options);
+      } catch (err) {
+        lastError = err;
+        if (i < available.length - 1) {
+          console.warn(
+            `Provider "${provider.name}" failed, falling back to "${available[i + 1].name}":`,
+            err
+          );
+        }
       }
-      throw primaryError;
     }
+
+    throw lastError;
   }
 }

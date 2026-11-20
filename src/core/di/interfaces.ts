@@ -25,11 +25,21 @@ export interface HttpResponse<T = any> {
   text(): Promise<string>;
 }
 
+export interface HttpRequestOptions {
+  timeoutMs?: number;
+}
+
 export interface IHttpClient {
   post<T = any>(
     url: string,
     body: unknown,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
+    options?: HttpRequestOptions
+  ): Promise<HttpResponse<T>>;
+  get?<T = any>(
+    url: string,
+    headers?: Record<string, string>,
+    options?: HttpRequestOptions
   ): Promise<HttpResponse<T>>;
 }
 
@@ -39,6 +49,20 @@ export interface IGeminiConfig {
   defaultModel?: string;
   defaultTemperature?: number;
   defaultMaxTokens?: number;
+}
+
+export interface IOllamaConfig {
+  baseUrl?: string;
+  defaultModel?: string;
+  numCtx?: number;
+  temperature?: number;
+  maxTokens?: number;
+  keepAlive?: string | number;
+  timeoutMs?: number;
+  healthTimeoutMs?: number;
+  systemInstruction?: string;
+  headers?: Record<string, string>;
+  enabled?: boolean;
 }
 
 export type SessionListener = (messages: ChatMessage[]) => void;
@@ -61,6 +85,7 @@ export interface ILLMClient {
   getActiveProviderName(): string;
   setPrimaryProvider(provider: ILLMProvider): void;
   setFallbackProvider(provider?: ILLMProvider): void;
+  setProviders?(providers: ILLMProvider[]): void;
   dispatchMessage(session: IChatSession, options?: LLMGenerateOptions): Promise<string>;
 }
 
