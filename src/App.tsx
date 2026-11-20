@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import GeminiChatView, { ChatMessage } from "./components/GeminiChatView";
+import DegenLabView from "./components/DegenLabView";
 import { defaultCatalog } from "./data/catalog";
 import { BenchmarkAssistantAgent } from "./core/chat/BenchmarkAssistantAgent";
 import { LLMModel } from "./core/models/LLMModel";
 import { ModelComparison } from "./core/catalog/BenchmarkCatalog";
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<"chat" | "catalog" | "arbitrage" | "providers">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "catalog" | "arbitrage" | "providers" | "degen">("chat");
 
   // Benchmark Agent instance (singleton per app life)
   const agentRef = useRef<BenchmarkAssistantAgent | null>(null);
@@ -215,6 +216,16 @@ export function App() {
             }`}
           >
             Dostawcy ({providers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("degen")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 ${
+              activeTab === "degen"
+                ? "bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-md shadow-amber-500/20"
+                : "text-amber-400 hover:text-amber-300 hover:bg-[#1e1f20]"
+            }`}
+          >
+            <span>🔥</span> Degen Lab
           </button>
         </nav>
 
@@ -615,6 +626,9 @@ export function App() {
             </div>
           </div>
         )}
+
+        {/* TAB 5: DEGEN LAB */}
+        {activeTab === "degen" && <DegenLabView />}
       </main>
 
       {/* CODE SNIPPET MODAL */}

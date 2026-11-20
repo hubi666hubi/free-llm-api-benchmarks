@@ -414,3 +414,90 @@ class CostArbitrageEngine:
             "net_monthly_savings_usd": round(savings, 2),
             "savings_percent": round(savings_pct, 2),
         }
+
+
+def generate_degen_proxy_script(
+    keys: Optional[List[str]] = None,
+    target_url: str = "https://openrouter.ai/api/v1/chat/completions",
+) -> str:
+    """
+    Generates a self-contained Python FastAPI proxy script with multi-key round-robin
+    and automatic 429 backoff quarantine.
+    """
+    import json
+    key_list = keys if keys else ["AIzaSyDemo1", "AIzaSyDemo2", "AIzaSyDemo3"]
+    keys_json = json.dumps(key_list, indent=4)
+
+    return f'''#!/usr/bin/env python3
+"""
+Degen Anti-429 Proxy: High-Concurrency Multi-Key Load Balancer & Rotator
+Run with: pip install fastapi uvicorn httpx && python -m uvicorn degen_proxy:app --port 8000
+"""
+
+import time
+import asyncio
+from typing import List, Dict, Optional
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+import httpx
+
+app = FastAPI(title="Degen Anti-429 Pooler Proxy", version="2.0.0")
+
+KEYS = {keys_json}
+TARGET_URL = "{target_url}"
+
+class KeyPool:
+    def __init__(self, keys: List[str], cooldown_sec: int = 60):
+        self.keys = keys
+        self.cooldown_sec = cooldown_sec
+        self.cooldowns: Dict[str, float] = {{}}
+        self.current_idx = 0
+        self.lock = asyncio.Lock()
+
+    async def acquire_key(self) -> str:
+        async with self.lock:
+            now = time.time()
+            self.cooldowns = {{k: exp for k, exp in self.cooldowns.items() if exp > now}}
+            for _ in range(len(self.keys)):
+                k = self.keys[self.current_idx]
+                self.current_idx = (self.current_idx + 1) % len(self.keys)
+                if k not in self.cooldowns:
+                    return k
+            wait = min(self.cooldowns.values()) - now if self.cooldowns else self.cooldown_sec
+            raise HTTPException(status_code=429, detail=f"All keys in 429 quarantine. Retry in {{max(1, int(wait))}}s")
+
+    async def mark_quarantined(self, key: str, retry_after: Optional[int] = None):
+        async with self.lock:
+            wait = retry_after if (retry_after and retry_after > 0) else self.cooldown_sec
+            self.cooldowns[key] = time.time() + wait
+            print(f"[Anti-429] Key ...{{key[-6:]}} quarantined for {{wait}}s")
+
+pool = KeyPool(KEYS)
+
+@app.post("/v1/chat/completions")
+async def chat_completions(request: Request):
+    body = await request.json()
+    max_retries = min(len(KEYS), 5)
+    for _ in range(max_retries):
+        key = await pool.acquire_key()
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(
+                    TARGET_URL,
+                    headers={{"Authorization": f"Bearer {{key}}", "Content-Type": "application/json"}},
+                    json=body,
+                )
+                if resp.status_code == 429:
+                    retry_after = int(resp.headers.get("retry-after", "60"))
+                    await pool.mark_quarantined(key, retry_after)
+                    continue
+                return JSONResponse(status_code=resp.status_code, content=resp.json())
+        except Exception:
+            continue
+    raise HTTPException(status_code=429, detail="Exhausted all available pool keys.")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+'''
+

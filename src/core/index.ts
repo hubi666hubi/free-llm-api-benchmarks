@@ -6,3 +6,5 @@ export * from "./chat/GeminiProvider";
 export * from "./chat/MockCatalogAssistantProvider";
 export * from "./chat/LLMClient";
 export * from "./chat/BenchmarkAssistantAgent";
+export * from "./degen/DegenKeyPooler";
+export * from "./degen/zeroAuthEndpoints";

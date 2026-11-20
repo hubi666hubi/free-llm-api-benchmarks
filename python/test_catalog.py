@@ -4,7 +4,7 @@ Unit tests for benchmark_catalog.py
 
 import unittest
 from pathlib import Path
-from python.benchmark_catalog import BenchmarkCatalog, LLMModel, CostArbitrageEngine
+from python.benchmark_catalog import BenchmarkCatalog, LLMModel, CostArbitrageEngine, generate_degen_proxy_script
 
 CSV_PATH = Path(__file__).resolve().parent.parent / "free_tier_llm_apis_top100.csv"
 
@@ -88,6 +88,14 @@ class TestBenchmarkCatalog(unittest.TestCase):
         self.assertIn("google/gemini-exp-1206", py_snippet)
         curl_snippet = model.generate_curl_snippet()
         self.assertIn("curl", curl_snippet)
+
+    def test_degen_proxy_generation(self):
+        proxy = generate_degen_proxy_script(["sk-test-1", "sk-test-2"])
+        self.assertIn("sk-test-1", proxy)
+        self.assertIn("sk-test-2", proxy)
+        self.assertIn("/v1/chat/completions", proxy)
+        self.assertIn("FastAPI", proxy)
+        self.assertIn("KeyPool", proxy)
 
 
 if __name__ == "__main__":

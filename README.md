@@ -89,6 +89,7 @@ python3 -m python.cli cheapest --min-context 1000000
 python3 -m python.cli pareto
 python3 -m python.cli snippet google/gemini-exp-1206 --lang python
 python3 -m python.cli stats
+python3 -m python.cli degen-proxy --keys key1 key2 key3
 
 # Run Python unit tests
 python3 -m unittest discover -s python
@@ -98,6 +99,12 @@ python3 -m unittest discover -s python
 
 ## Maxi Maxi Pro Features
 
+- **🔥 Reddit Degen Lab & Anti-429 Resilience Engine**:
+  - **Multi-Key Pooler & Live Simulator**: Round-robin key rotation with automatic 429 quarantine, live cooldown countdowns, and zero-downtime failover.
+  - **1-Click Proxy Exporter**: Drop-in Python FastAPI proxy script, LiteLLM `config.yaml`, and Cloudflare Worker scripts.
+  - **Zero-Auth ($0 No Key) Endpoints Index**: Puter.js, Pollinations.ai, DuckDuckGo AI proxy, Cloudflare AI with 1-click snippets.
+  - **Abliterated & Zero-Refusal Radar**: Filter unmoderated models with bypass system prompt templates for unrestricted coding.
+  - **Prompt Caching Arbitrage Calculator**: Calculate 90% cost savings via DeepSeek / Gemini prompt caching anchors.
 - **⭐ Global Pareto Frontier Engine**: Identifies mathematically non-dominated models in context window vs token cost.
 - **Side-by-side Model Comparison**: Direct visual delta analysis (context token delta, cost delta, tool & reasoning parity, analytical verdict).
 - **Instant Code Snippet Generator**: 1-click production-ready client snippets for Python (`OpenAI` / `LiteLLM`), TypeScript (`fetch`), and `cURL`.

@@ -7,7 +7,7 @@ Allows querying catalog models, computing Pareto frontier, and generating code s
 import argparse
 import sys
 from pathlib import Path
-from python.benchmark_catalog import BenchmarkCatalog
+from python.benchmark_catalog import BenchmarkCatalog, generate_degen_proxy_script
 
 DEFAULT_CSV = Path(__file__).resolve().parent.parent / "free_tier_llm_apis_top100.csv"
 
@@ -58,6 +58,11 @@ def main():
 
     # stats
     subparsers.add_parser("stats", help="Show global benchmark catalog stats")
+
+    # degen-proxy
+    degen_parser = subparsers.add_parser("degen-proxy", help="Generate Anti-429 Multi-Key FastAPI Proxy script")
+    degen_parser.add_argument("--keys", nargs="*", default=None, help="List of API keys to pool")
+    degen_parser.add_argument("--target", default="https://openrouter.ai/api/v1/chat/completions", help="Upstream endpoint URL")
 
     args = parser.parse_args()
     if not args.command:
@@ -149,6 +154,10 @@ def main():
         print("\n=== Global Catalog Statistics ===")
         for k, v in stats.items():
             print(f"• {k}: {v}")
+
+    elif args.command == "degen-proxy":
+        script = generate_degen_proxy_script(keys=args.keys, target_url=args.target)
+        print(script)
 
 
 if __name__ == "__main__":

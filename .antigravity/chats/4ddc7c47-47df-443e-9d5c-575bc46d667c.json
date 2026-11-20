@@ -40,6 +40,66 @@
       "created_at": "2026-11-19T19:45:16.644Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "7f243f0e-5550-4ce8-a5fe-b4910074f6c8",
+      "role": "user",
+      "content": "Jakie funkcje z reddita polecisz od degenów?",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T08:54:38.877Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "dccd012f-c5a6-4b28-b1e5-1d1a91d8c076",
+      "role": "agent",
+      "content": "Na subredditach typu **r/LocalLLaMA**, **r/ChatGPTCoding**, **r/OpenRouter**, **r/SillyTavernAI** i **r/cursor** („API free-tier degeni” / vibe-coderzy) najwięcej ludzi szuka narzędzi, które nie tylko *pokazują tabelkę*, ale pomagają **wycisnąć maksa z darmowych limitów bez ręcznego klikania**.\n\nPatrząc na to, co już masz w [App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx) i jakie kolumny leżą gotowe w [free_tier_llm_apis_top100.csv](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/free_tier_llm_apis_top100.csv) oraz [DATA_DICTIONARY.md](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/DATA_DICTIONARY.md), poniżej masz topowe „degeńskie” funkcje, które siadłyby tu idealnie:\n\n---\n\n### 1. Anti-429 Fallback Chain Generator (`LiteLLM` / Proxy Router)\nNa Reddicie nikt nie jedzie na jednym darmowym API, bo po 5 minutach wpada `429 Rate Limit`. Standardem jest łańcuch 3–5 darmowych dostawców z automatycznym przełączaniem.\n* **Funkcja:** Zaznaczasz w katalogu 3–5 modeli (np. primary + 3 fallbacki), a apka generuje gotowy `litellm_config.yaml` (albo lekki router w Python/TS) z kolejnością, retry, timeoutem i cooldownem przy `429`.\n\n### 2. Eksport 1-Click do narzędzi vibe-codingowych i RP\nW [App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx#L621-L700) masz już generator dla Pythona, TS i `cURL`. Power-userzy z Reddita najczęściej nie piszą surowego `fetch()`, tylko wklejają konfigurację do swoich agentów.\n* **Funkcja:** Dodatkowe zakładki w modalu kodu:\n  * **Roo Code / Cline** (gotowy profil OpenAI-compatible JSON),\n  * **Aider** (`.aider.conf.yml` z podziałem Architect / Editor),\n  * **Continue.dev / OpenCode** (`config.json`),\n  * **SillyTavern** (preset endpointu + kontekstu).\n\n### 3. „Holy Trinity” Stack Builder (Kompozytor darmowego stacku)\nKlasyczny wzorzec z r/ChatGPTCoding — rozbijanie pracy na 3 wyspecjalizowane role zamiast jednego modelu do wszystkiego:\n* **Architect / Planner** — największy kontekst + `Reasoning`,\n* **Fast Coder** — `Tool Calling` + najwyższy `max_output_tokens`,\n* **Cheap / Free Bulk Worker** — `$0` do streszczeń, commitów i klasyfikacji.\n* **Bonus wiralowy:** Przycisk **„Export Degen Stack Card”** (gotowy Markdown / tabela do wklejenia w komentarz na Reddicie lub X).\n\n### 4. Kalkulator „Realnego Burnu” (Workload Presets + Limit RPM/TPM)\nObecny kalkulator w zakładce `Arbitraż & ROI` ([App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx#L464-L551)) liczy po uśrednionej cenie `blended` (`3*in + out / 4`). W praktyce degeni wiedzą, że proporcje są ekstremalne:\n* **Agentic Coding** — ok. **90% input / 10% output** (ciągłe dosyłanie plików repozytorium),\n* **Deep Reasoning (`<think>`)** — ok. **20% input / 80% output** (ukryte tokeny myślenia przepalają budżet),\n* **1M Repo Dump / RAG** — pojedyncze gigantyczne zapytania.\n* Dodatkowo: skoro masz w danych `input_cost_per_1m_usd`, `output_cost_per_1m_usd`, `rate_limit_rpm` i `rate_limit_tpm`, można liczyć dokładny koszt per workload oraz **„ile minut kodowania zanim uderzysz w 429”**.\n\n### 5. Live Speed & Sanity Tester (BYOK — na kluczu użytkownika)\nNajczęstszy zarzut pod listami darmowych API na r/LocalLLaMA: *„na papierze za darmo, a w praktyce zwraca 429, pluje 3 tok/s albo psuje JSON przy tool callach”*.\n* **Funkcja:** Mini-benchmark (w UI lub w [python/cli.py](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/python/cli.py)) na własnym kluczu API, który mierzy:\n  * **TTFT** (Time To First Token),\n  * **TPS** (Tokens/sec),\n  * **Tool-Calling Smoke Test** (czy model realnie oddaje poprawny JSON, czy halucynuje).\n\n### 6. Filtry „Degen Reality Check” + Wykres 2D Pareto\nW samym CSV masz już niewykorzystane jeszcze w UI złoto — m.in. `modalities` (`image`, `pdf`, `audio`, `video`) oraz `max_output_tokens` (2M kontekstu przy limicie 8k outputu potrafi zepsuć refaktor dużego pliku).\n* **Funkcja:**\n  * Filtry po **modalnościach** (`Vision / PDF / Audio / Video`) i **min. `max_output_tokens`** (np. `>= 32k` / `>= 64k`),\n  * Flagi/badge'e **ZDR (Zero Data Retention / czy trenują na promptach)** oraz **No Credit Card** (najczęstsze pytanie w każdym wątku o free API),\n  * Interaktywny wykres **2D Scatter Plot (Kontekst vs Koszt)** z zaznaczoną krzywą **Pareto Frontier** — świetnie wygląda i od razu widać anomalie cenowe.\n\n---\n\nKtóre z tych funkcji (np. top 2–3) chciałbyś dorzucić do aplikacji w pierwszej kolejności? Jeśli chcesz najpierw rozpisać architekturę pod większy zestaw zmian, możesz też odpalić `/plan`.",
+      "status": "completed",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "7f243f0e-5550-4ce8-a5fe-b4910074f6c8",
+      "created_at": "2026-11-20T08:55:43.352Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "c7ff5541-5b23-4bf2-8d81-0dd7033c32ce",
+      "role": "user",
+      "content": "słabe ja mam to juz w wersjach pro",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T08:56:04.542Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "9bffd6c6-5b60-48ff-bd8d-32e2ccbd446e",
+      "role": "agent",
+      "content": "Okej, fakt – to wyżej to były ugrzecznione ficzery pod typowy SaaS/B2B. \n\nPrawdziwy underground z **r/LocalLLaMA**, **r/SillyTavernAI**, **gpt4free** i kanałów na Discordzie to zupełnie inna bajka. Tam nikt nie płaci ani grosza, a celem jest wyciśnięcie nielimitowanego compute wszelkimi możliwymi sposobami. \n\nOto co degeni z Reddita **naprawdę** kombinują:\n\n---\n\n### 1. Multi-Key Pooler & Auto-Cooldown (Rotator kluczy na sterydach)\nDarmowe plany dają np. 15 RPM na konto. Degen nie używa jednego klucza – zakłada 20 kont na temp-mailach.\n* **Co robi ficzer:** Wrzucasz listę 50 darmowych kluczy API (np. Groq, Google AI Studio, Cerebras, Mistral).\n* Wbudowany round-robin z inteligentnym cooldownem: jak klucz dostaje `429`, leci w odstawkę na dokładnie tyle sekund, ile mówi nagłówek `retry-after` (albo na 60s), a ruch natychmiast przejmuje kolejny.\n* Efekt: **nielimitowane darmowe API o przepustowości rzędu 500 RPM bez płacenia**.\n\n### 2. Tracker endpointów „Zero-Auth / Public Web” (Kategoria No-Key / $0)\nZamiast oficjalnych kluczy API, tracking endpointów, które działają **bez rejestracji i bez karty**:\n* **Puter.js**, **Pollinations.ai**, **DuckDuckGo AI**, darmowe widgety z **HuggingFace Inference API**, Cloudflare Workers AI free tier (10k neuronów/dzień bez karty).\n* Ranking: które z nich mają aktualnie otwarte bramki CORS, które nie wymagają Cloudflare Turnstile tokena i które dają format zgodny z OpenAI `/v1/chat/completions`.\n\n### 3. „Abliterated / Zero Refusal Score” (Wskaźnik ocenzurowania)\nW twoim [free_tier_llm_apis_top100.csv](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/free_tier_llm_apis_top100.csv) przewija się provider `refuseless`. Na r/LocalLLaMA i r/SillyTavern to jest główny filtr:\n* Czy model to \"moralizujący korpo-bot\" rzucający *„As an AI language model, I cannot...”*, czy przepuszcza wszystko?\n* **Ficzer:** Tabela z metryką **Jailbreak / Refusal Rate** (np. test na 10 standardowych promptach krawędziowych/red-teamingowych) i filtrowanie modeli po tagach `uncensored`, `abliterated`, `uncapped-system-prompt`.\n\n### 4. Prompt Caching Loophole (Arbitraż 90% zniżki / darmowy 1M context)\nJak DeepSeek czy Google liczą cache: hit kosztuje 10x mniej (lub $0 w tierach promo).\n* **Ficzer:** Formatowanie promptu i architektura \"System Prompt Anchor\" – narzędzie, które układa zapytanie tak, żeby pierwsze 50k–100k tokenów (np. cała dokumentacja, schema bazy, kod) trafiło w **Context Cache**, dzięki czemu kolejne setki zapytań mieszczą się w śmiesznych limitach darmowych tierów bez zjadania RPM/TPM.\n\n### 5. „Ghost Models & Staging Leaks” Radar\nDarmowe perełki to często snapshoty przedpremierowe (tak jak w repo masz `gemini-exp-1206`, który w wersji experimental Google dawał z 2M kontekstu za darmo z kosmicznymi limitami).\n* **Ficzer:** Automatyczny skaner endpointów OpenRouter / Google / Together wyłapujący modele z sufiksami `-preview`, `-exp`, `-test`, `:free` w momencie, gdy provider wystawia je do testów z limitem $0/token, zanim zmienią to na płatny prod.\n\n### 6. Needle In A Haystack „Reality Check” (Prawdziwy kontekst vs marketing)\nDostawca pisze w specyfikacji `1,000,000 tokens`, ale degen wie, że po 32k model zaczyna halucynować, gubi instrukcje z system promptu albo zapomina format JSON-a.\n* **Ficzer:** Prosty test *Effective Attention Horizon* – czy model faktycznie widzi igłę w stogu siana przy 200k, 500k i 1M tokenów, czy ten milion to tylko chwyt marketingowy.\n\n---\n\nO to chodzi w degeńskim klimacie, czy masz na myśli jeszcze bardziej specyficzny wektor (np. pod boty na Discordzie / Telegramie, farming airdropów AI, czy web-scraping)?",
+      "status": "completed",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "c7ff5541-5b23-4bf2-8d81-0dd7033c32ce",
+      "created_at": "2026-11-20T08:56:34.975Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "07bccdb0-9030-4c72-810f-27825f608165",
+      "role": "user",
+      "content": "ficzer",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T09:02:55.429Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
