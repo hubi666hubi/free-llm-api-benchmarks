@@ -254,6 +254,22 @@ describe("OllamaProvider Hexagonal Adapter", () => {
     ).rejects.toThrow(/OLLAMA_ORIGINS/);
   });
 
+  it("fails fast via preflight (no long chat request) when server is unreachable, and caches the verdict", async () => {
+    const http = new FakeHttpClient({
+      get: async () => {
+        throw new Error("timeout");
+      },
+    });
+    const ollama = new OllamaProvider({ healthTimeoutMs: 1500 }, http, new DeterministicClock(0, 1));
+    const msg = [{ id: "1", role: "user" as const, content: "Hej" }];
+
+    await expect(ollama.sendMessage(msg)).rejects.toThrow(/limit 1500 ms/);
+    await expect(ollama.sendMessage(msg)).rejects.toThrow(/limit 1500 ms/);
+    expect(http.postCalls).toHaveLength(0);
+    expect(http.getCalls).toHaveLength(1);
+    expect(http.getCalls[0].options?.timeoutMs).toBe(1500);
+  });
+
   it("throws clear error when IHttpClient is not injected", async () => {
     const ollama = new OllamaProvider({ enabled: true });
     await expect(

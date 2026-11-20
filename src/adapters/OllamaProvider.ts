@@ -48,7 +48,9 @@ function normalizeBaseUrl(url: string): string {
  * Never calls global `fetch` directly — always routes through injected `IHttpClient`.
  */
 export class OllamaProvider implements ILocalLLMProvider {
+  static readonly REACHABILITY_TTL_MS = 5_000;
   readonly name = "Ollama (Local)";
+  private reachability?: { url: string; at: number; ok: boolean; error: string };
   private _baseUrl: string;
   private _defaultModel: string;
   private _numCtx: number;
@@ -166,6 +168,8 @@ export class OllamaProvider implements ILocalLLMProvider {
       payload.keep_alive = keepAlive;
     }
 
+    await this.ensureReachable();
+
     const url = `${this._baseUrl}/api/chat`;
     let response;
     try {
@@ -206,6 +210,36 @@ export class OllamaProvider implements ILocalLLMProvider {
     }
 
     return content;
+  }
+
+  /**
+   * Fail-fast preflight: a dead/hung server is detected within `healthTimeoutMs`
+   * (not the long generation timeout), so the router can fall back immediately.
+   * Result is cached briefly to avoid probing on every message.
+   */
+  private async ensureReachable(): Promise<void> {
+    const http = this.httpClient;
+    if (!http?.get) return;
+
+    const now = this.clock.timestamp();
+    const cached = this.reachability;
+    if (cached && cached.url === this._baseUrl && now - cached.at < OllamaProvider.REACHABILITY_TTL_MS) {
+      if (cached.ok) return;
+      throw new Error(cached.error);
+    }
+
+    let error = "";
+    try {
+      const res = await http.get(`${this._baseUrl}/api/version`, this.headers, {
+        timeoutMs: this.healthTimeoutMs,
+      });
+      if (!res.ok) error = `Ollama odpowiada błędem HTTP (${res.status}) pod ${this._baseUrl}.`;
+    } catch (err: any) {
+      error = `Nie można połączyć z Ollama pod ${this._baseUrl} (limit ${this.healthTimeoutMs} ms). Uruchom "ollama serve" (w przeglądarce ustaw OLLAMA_ORIGINS="*"). Szczegóły: ${err?.message || String(err)}`;
+    }
+
+    this.reachability = { url: this._baseUrl, at: now, ok: !error, error };
+    if (error) throw new Error(error);
   }
 
   /**

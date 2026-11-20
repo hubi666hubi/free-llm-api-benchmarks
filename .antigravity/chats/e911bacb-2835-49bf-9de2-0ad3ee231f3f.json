@@ -268,6 +268,66 @@
       "created_at": "2026-11-20T18:26:50.446Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "a4a52300-0bb1-4126-ac3c-f2d99fb5d026",
+      "role": "agent",
+      "content": "Jasne, robię zapis ustawień Ollamy.\nUstawienia Ollamy (włączenie, URL, model, `num_ctx`) zapisują się teraz w przeglądarce i wracają po odświeżeniu strony. Zmiany są zapisane w repozytorium. Testy (87), typecheck i build przechodzą. Samego zapisu w przeglądarce nie sprawdzałem ręcznie.\n\n- **Port w rdzeniu:** [OllamaSettings.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/settings/OllamaSettings.ts) ma interfejs `ISettingsStore` i `OllamaSettingsRepository`. Repozytorium waliduje dane, a przy uszkodzonym albo nieprawidłowym wpisie wraca do wartości domyślnych. Jest też `MemorySettingsStore` do testów.\n- **Adapter:** [LocalStorageSettingsStore.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/adapters/LocalStorageSettingsStore.ts) zapisuje do `localStorage`. Gdy ten rzuca błąd (tryb prywatny, pełny limit), przechodzi na pamięć sesji.\n- **UI:** [App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx) wczytuje zapisane ustawienia przy starcie. Jeśli Ollama była włączona, od razu ustawia ją jako pierwszego providera. „Zapisz i zastosuj\" zapisuje zmiany.\n- **Testy:** [settings.test.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/__tests__/settings.test.ts) uruchamia ten sam kontrakt na obu magazynach.\n\n**Klucza Gemini celowo nie zapisuję**, bo `localStorage` jest jawny i dostępny dla skryptów na stronie. Trzeba go wpisywać po każdym odświeżeniu. Zapis klucza wymagałby szyfrowanego magazynu, np. frazą hasłową przez WebCrypto. Daj znać, jeśli mam to dodać.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "e855fa67-5ee4-4429-a282-b794dc9ce1bd",
+      "created_at": "2026-11-20T18:27:29.844Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "ab749466-54b1-4f8c-a010-4e2c717e00b9",
+      "role": "user",
+      "content": "o coś mi tu kurwa śmierdzi",
+      "status": "cancelled",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T18:32:30.880Z",
+      "sender": "ios",
+      "is_cancelled": true
+    },
+    {
+      "id": "c3e15732-64e4-4f15-adce-816d434b2c32",
+      "role": "user",
+      "content": "o coś mi tu kurwa śmierdzi",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T18:32:42.002Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "a2da846f-18d7-4976-8714-32e893205954",
+      "role": "agent",
+      "content": "Sprawdzę kilka rzeczy, które mogą śmierdzieć, zamiast zgadywać.\nNiczego jeszcze nie zmieniałem. Poniżej to, co znalazłem, od najpoważniejszego.\n\n**Problemy w moim kodzie z Ollamą:**\n- **Fałszywe „Silnik: Ollama\".** `isAvailable()` sprawdza tylko, czy Ollama jest włączona i ma ustawiony model, a nie czy serwer odpowiada. Nagłówek może więc pokazywać Ollamę, gdy serwer jest wyłączony.\n- **Fallback może trwać długo.** Timeout czatu to 120 s, więc przy zawieszonym serwerze przejście do Gemini albo trybu offline potrafi trwać dwie minuty. Przy odrzuconym połączeniu błąd przychodzi od razu.\n- **Strona na HTTPS nie połączy się z `http://localhost`.** Przeglądarka może to zablokować jako mixed content. Działa to pewnie tylko lokalnie przez `vite dev`.\n- **Zapisu ustawień nie sprawdziłem w prawdziwej przeglądarce.** Przetestowany jest tylko kontrakt na atrapie magazynu.\n- **Modele z rekomendacji istnieją.** Sprawdziłem, że `qwen3-coder`, `qwen2.5-coder`, `deepseek-coder-v2` i `qwen3-coder-next` mają strony w bibliotece Ollamy. Wymagań sprzętowych nie weryfikowałem. Pochodzą z podsumowania wyszukiwarki, więc traktuj je jako orientacyjne.\n\n**Rzeczy w repo, które były przede mną:**\n- **[plik.zip](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/plik.zip)** to stara kopia źródeł z samego początku. Jest nieaktualna i dubluje kod, więc raczej do usunięcia.\n- **Rozmowy z agentem są w git.** Pliki w `.antigravity/chats/` zawierają całe rozmowy i trafiają do publicznego repo.\n- **`npm audit` pokazuje 6 podatności, w tym jedną krytyczną.** Nie sprawdzałem, w którym pakiecie ani czy to tylko narzędzia deweloperskie.\n- **Moduł „Degen\"** ([zeroAuthEndpoints.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/degen/zeroAuthEndpoints.ts)) to rotacja kluczy w celu obchodzenia limitów oraz modele „abliterated\". Może łamać regulaminy dostawców, a w publicznym repo z linkami do płatnych produktów w README wygląda ryzykownie.\n\nNie wiem, co konkretnie Ci śmierdzi. Powiedz, o którą rzecz chodzi. Jeśli o żadną z powyższych, napisz, co zobaczyłeś. Domyślnie naprawiłbym najpierw problemy z Ollamą, czyli prawdziwy health-check zamiast samego `isAvailable()` i krótszy timeout przed fallbackiem.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "c3e15732-64e4-4f15-adce-816d434b2c32",
+      "created_at": "2026-11-20T18:33:05.066Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "2f11e4d2-56c7-480d-a9bd-d6134430ca4a",
+      "role": "user",
+      "content": "jak kurwa 120 sekund",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T18:34:07.756Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
