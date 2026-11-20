@@ -8,3 +8,5 @@ export * from "./chat/LLMClient";
 export * from "./chat/BenchmarkAssistantAgent";
 export * from "./degen/DegenKeyPooler";
 export * from "./degen/zeroAuthEndpoints";
+export * from "./di";
+

@@ -1,12 +1,12 @@
 import { ILLMProvider, LLMGenerateOptions } from "./LLMProvider";
-import { ChatSession } from "./ChatSession";
+import { IChatSession, ILLMClient } from "../di/interfaces";
 
 export interface LLMClientConfig {
   primaryProvider: ILLMProvider;
   fallbackProvider?: ILLMProvider;
 }
 
-export class LLMClient {
+export class LLMClient implements ILLMClient {
   private primaryProvider: ILLMProvider;
   private fallbackProvider?: ILLMProvider;
 
@@ -36,7 +36,7 @@ export class LLMClient {
   /**
    * Dispatches conversation to the active provider and handles fallback if needed.
    */
-  async dispatchMessage(session: ChatSession, options?: LLMGenerateOptions): Promise<string> {
+  async dispatchMessage(session: IChatSession, options?: LLMGenerateOptions): Promise<string> {
     const messages = session.messages;
     if (messages.length === 0) {
       throw new Error("Brak wiadomości w sesji do wysłania.");

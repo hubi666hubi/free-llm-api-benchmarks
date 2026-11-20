@@ -3,7 +3,7 @@
   "name": "Refactor",
   "createdAt": "2026-11-20T17:23:31.293Z",
   "filename": "e911bacb-2835-49bf-9de2-0ad3ee231f3f.json",
-  "geminiStarted": false,
+  "geminiStarted": true,
   "messages": [
     {
       "id": "7463e32e-1993-458f-b6c8-c9d954b99690",

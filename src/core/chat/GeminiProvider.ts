@@ -1,14 +1,32 @@
 import { ILLMProvider, LLMGenerateOptions } from "./LLMProvider";
 import { ChatMessage } from "../../components/GeminiChatView";
+import { IHttpClient, IGeminiConfig } from "../di/interfaces";
+import { FetchHttpClient } from "../di/defaults";
 
 export class GeminiProvider implements ILLMProvider {
   readonly name = "Google Gemini API";
-  readonly defaultModel = "gemini-1.5-flash";
+  defaultModel = "gemini-1.5-flash";
   private apiKey: string | null = null;
+  private readonly baseUrl: string;
+  private readonly httpClient: IHttpClient;
 
-  constructor(apiKey?: string) {
-    if (apiKey) {
-      this.apiKey = apiKey.trim();
+  constructor(
+    configOrApiKey?: string | IGeminiConfig,
+    httpClient?: IHttpClient
+  ) {
+    this.httpClient = httpClient || new FetchHttpClient();
+
+    if (typeof configOrApiKey === "string") {
+      this.apiKey = configOrApiKey.trim() || null;
+      this.baseUrl = "https://generativelanguage.googleapis.com/v1beta";
+    } else if (configOrApiKey) {
+      this.apiKey = configOrApiKey.apiKey?.trim() || null;
+      this.baseUrl = configOrApiKey.baseUrl || "https://generativelanguage.googleapis.com/v1beta";
+      if (configOrApiKey.defaultModel) {
+        this.defaultModel = configOrApiKey.defaultModel;
+      }
+    } else {
+      this.baseUrl = "https://generativelanguage.googleapis.com/v1beta";
     }
   }
 
@@ -22,11 +40,13 @@ export class GeminiProvider implements ILLMProvider {
 
   async sendMessage(messages: ChatMessage[], options?: LLMGenerateOptions): Promise<string> {
     if (!this.apiKey) {
-      throw new Error("Brak klucza Google Gemini API. Wprowadź klucz w ustawieniach lub skorzystaj z wbudowanego asystenta bazy.");
+      throw new Error(
+        "Brak klucza Google Gemini API. Wprowadź klucz w ustawieniach lub skorzystaj z wbudowanego asystenta bazy."
+      );
     }
 
     const model = options?.model || this.defaultModel;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+    const url = `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`;
 
     // Convert messages to Gemini API format
     const contents = messages
@@ -52,13 +72,7 @@ export class GeminiProvider implements ILLMProvider {
       payload.systemInstruction = systemInstruction;
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await this.httpClient.post(url, payload);
 
     if (!response.ok) {
       const errorText = await response.text();

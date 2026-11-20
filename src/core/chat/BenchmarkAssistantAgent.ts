@@ -1,43 +1,65 @@
-import { BenchmarkCatalog } from "../catalog/BenchmarkCatalog";
-import { ChatSession } from "./ChatSession";
-import { LLMClient } from "./LLMClient";
+import {
+  IBenchmarkCatalog,
+  IChatSession,
+  ILLMClient,
+} from "../di/interfaces";
+import { createBenchmarkContainer } from "../di/bootstrap";
+import { TOKENS } from "../di/tokens";
 import { GeminiProvider } from "./GeminiProvider";
 import { MockCatalogAssistantProvider } from "./MockCatalogAssistantProvider";
+import { ILLMProvider } from "./LLMProvider";
+
+export interface BenchmarkAssistantAgentDependencies {
+  session: IChatSession;
+  client: ILLMClient;
+  catalog?: IBenchmarkCatalog;
+  geminiProvider?: GeminiProvider;
+  mockProvider?: ILLMProvider;
+}
 
 export class BenchmarkAssistantAgent {
-  readonly catalog: BenchmarkCatalog;
-  readonly session: ChatSession;
-  readonly client: LLMClient;
-  readonly geminiProvider: GeminiProvider;
-  readonly mockProvider: MockCatalogAssistantProvider;
+  readonly catalog?: IBenchmarkCatalog;
+  readonly session: IChatSession;
+  readonly client: ILLMClient;
+  readonly geminiProvider?: GeminiProvider;
+  readonly mockProvider?: ILLMProvider;
 
-  constructor(catalog: BenchmarkCatalog, geminiApiKey?: string) {
-    this.catalog = catalog;
-    this.session = new ChatSession("benchmark-agent-session");
-    this.geminiProvider = new GeminiProvider(geminiApiKey);
-    this.mockProvider = new MockCatalogAssistantProvider(catalog);
-
-    // Primary: Gemini if key provided, otherwise MockCatalogAssistantProvider
-    this.client = new LLMClient({
-      primary: this.geminiProvider.isAvailable() ? this.geminiProvider : this.mockProvider,
-      fallback: this.mockProvider,
-    } as any);
-
-    // If Gemini key is set, update primary
-    if (this.geminiProvider.isAvailable()) {
-      this.client.setPrimaryProvider(this.geminiProvider);
-      this.client.setFallbackProvider(this.mockProvider);
-    } else {
-      this.client.setPrimaryProvider(this.mockProvider);
+  constructor(
+    catalogOrDeps: IBenchmarkCatalog | BenchmarkAssistantAgentDependencies,
+    geminiApiKey?: string
+  ) {
+    if ("session" in catalogOrDeps && "client" in catalogOrDeps) {
+      // Pure Dependency Injection via constructor
+      this.session = catalogOrDeps.session;
+      this.client = catalogOrDeps.client;
+      this.catalog = catalogOrDeps.catalog;
+      this.geminiProvider = catalogOrDeps.geminiProvider;
+      this.mockProvider = catalogOrDeps.mockProvider;
+      return;
     }
+
+    // Composition root via DI container for default/backwards-compatible wiring
+    const catalog = catalogOrDeps as IBenchmarkCatalog;
+    const container = createBenchmarkContainer({
+      catalog,
+      geminiApiKey,
+    });
+
+    this.catalog = catalog;
+    this.session = container.resolve<IChatSession>(TOKENS.ChatSession);
+    this.geminiProvider = container.resolve<GeminiProvider>(TOKENS.GeminiProvider);
+    this.mockProvider = container.resolve<MockCatalogAssistantProvider>(TOKENS.MockProvider);
+    this.client = container.resolve<ILLMClient>(TOKENS.LLMClient);
   }
 
   setGeminiApiKey(key: string): void {
-    this.geminiProvider.setApiKey(key);
-    if (this.geminiProvider.isAvailable()) {
-      this.client.setPrimaryProvider(this.geminiProvider);
-    } else {
-      this.client.setPrimaryProvider(this.mockProvider);
+    if (this.geminiProvider) {
+      this.geminiProvider.setApiKey(key);
+      if (this.geminiProvider.isAvailable()) {
+        this.client.setPrimaryProvider(this.geminiProvider);
+      } else if (this.mockProvider) {
+        this.client.setPrimaryProvider(this.mockProvider);
+      }
     }
   }
 

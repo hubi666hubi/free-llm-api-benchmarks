@@ -1,21 +1,31 @@
 import { ChatMessage } from "../../components/GeminiChatView";
+import { IChatSession, IClock, IIdGenerator, SessionListener } from "../di/interfaces";
+import { SystemClock, DefaultIdGenerator } from "../di/defaults";
 
-export type SessionListener = (messages: ChatMessage[]) => void;
-
-export class ChatSession {
+export class ChatSession implements IChatSession {
   readonly id: string;
   private _title: string;
   private _messages: ChatMessage[];
   private readonly _createdAt: Date;
   private _updatedAt: Date;
   private readonly _listeners: Set<SessionListener> = new Set();
+  private readonly clock: IClock;
+  private readonly idGenerator: IIdGenerator;
 
-  constructor(id: string = `session-${Date.now()}`, initialMessages: ChatMessage[] = [], title: string = "Nowa konwersacja") {
-    this.id = id;
+  constructor(
+    id?: string,
+    initialMessages: ChatMessage[] = [],
+    title: string = "Nowa konwersacja",
+    clock: IClock = new SystemClock(),
+    idGenerator: IIdGenerator = new DefaultIdGenerator()
+  ) {
+    this.clock = clock;
+    this.idGenerator = idGenerator;
+    this.id = id || this.idGenerator.generateId("session");
     this._title = title;
     this._messages = [...initialMessages];
-    this._createdAt = new Date();
-    this._updatedAt = new Date();
+    this._createdAt = this.clock.now();
+    this._updatedAt = this.clock.now();
   }
 
   get title(): string {
@@ -24,7 +34,7 @@ export class ChatSession {
 
   set title(newTitle: string) {
     this._title = newTitle;
-    this._updatedAt = new Date();
+    this._updatedAt = this.clock.now();
   }
 
   get messages(): ChatMessage[] {
@@ -44,13 +54,13 @@ export class ChatSession {
    */
   addMessage(role: ChatMessage["role"], content: string): ChatMessage {
     const msg: ChatMessage = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: this.idGenerator.generateId("msg"),
       role,
       content,
-      timestamp: new Date(),
+      timestamp: this.clock.now(),
     };
     this._messages.push(msg);
-    this._updatedAt = new Date();
+    this._updatedAt = this.clock.now();
     this.notify();
     return msg;
   }
@@ -65,7 +75,7 @@ export class ChatSession {
         ...this._messages[idx],
         content: newContent,
       };
-      this._updatedAt = new Date();
+      this._updatedAt = this.clock.now();
       this.notify();
     }
   }
@@ -75,7 +85,7 @@ export class ChatSession {
    */
   clear(): void {
     this._messages = [];
-    this._updatedAt = new Date();
+    this._updatedAt = this.clock.now();
     this.notify();
   }
 
@@ -124,9 +134,19 @@ export class ChatSession {
   /**
    * Imports session state from JSON.
    */
-  static fromJSON(jsonStr: string): ChatSession {
+  static fromJSON(
+    jsonStr: string,
+    clock: IClock = new SystemClock(),
+    idGenerator: IIdGenerator = new DefaultIdGenerator()
+  ): ChatSession {
     const parsed = JSON.parse(jsonStr);
-    const session = new ChatSession(parsed.id, parsed.messages || [], parsed.title || "Wczytana sesja");
+    const session = new ChatSession(
+      parsed.id,
+      parsed.messages || [],
+      parsed.title || "Wczytana sesja",
+      clock,
+      idGenerator
+    );
     return session;
   }
 }

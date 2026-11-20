@@ -4,6 +4,9 @@
  * exponential / Retry-After backoff cooldowns, and production proxy code generation.
  */
 
+import { IClock, IIdGenerator } from "../di/interfaces";
+import { SystemClock, DefaultIdGenerator } from "../di/defaults";
+
 export interface ManagedKey {
   id: string;
   key: string;
@@ -36,15 +39,24 @@ export class DegenKeyPooler {
   private defaultCooldownSeconds: number = 60;
   private totalRouted: number = 0;
   private totalFailovers: number = 0;
+  private readonly clock: IClock;
+  private readonly idGenerator: IIdGenerator;
 
-  constructor(initialKeys: string[] = [], defaultCooldownSeconds = 60) {
+  constructor(
+    initialKeys: string[] = [],
+    defaultCooldownSeconds = 60,
+    clock: IClock = new SystemClock(),
+    idGenerator: IIdGenerator = new DefaultIdGenerator()
+  ) {
+    this.clock = clock;
+    this.idGenerator = idGenerator;
     this.defaultCooldownSeconds = defaultCooldownSeconds;
     initialKeys.forEach((key, idx) => this.addKey(key, `Key #${idx + 1}`));
   }
 
   public addKey(rawKey: string, alias?: string): ManagedKey {
     const trimmed = rawKey.trim();
-    const id = `k_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const id = this.idGenerator.generateId("k");
     const newKey: ManagedKey = {
       id,
       key: trimmed,
@@ -70,7 +82,7 @@ export class DegenKeyPooler {
     return [...this.keys];
   }
 
-  public refreshCooldowns(now = Date.now()): void {
+  public refreshCooldowns(now = this.clock.timestamp()): void {
     for (const key of this.keys) {
       if (key.status === "cooldown" && key.cooldownUntil && key.cooldownUntil <= now) {
         key.status = "healthy";
@@ -79,7 +91,7 @@ export class DegenKeyPooler {
     }
   }
 
-  public acquireKey(now = Date.now()): RouteResult {
+  public acquireKey(now = this.clock.timestamp()): RouteResult {
     this.refreshCooldowns(now);
 
     if (this.keys.length === 0) {
@@ -121,7 +133,7 @@ export class DegenKeyPooler {
     throw new Error(`Wszystkie klucze (${poolSize}) w puli są w stanie 429 Cooldown! Najbliższy odblokuje się za ${waitSeconds}s.`);
   }
 
-  public reportRateLimit(keyId: string, retryAfterSeconds?: number, now = Date.now()): void {
+  public reportRateLimit(keyId: string, retryAfterSeconds?: number, now = this.clock.timestamp()): void {
     const key = this.keys.find((k) => k.id === keyId);
     if (!key) return;
 

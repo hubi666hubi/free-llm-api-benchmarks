@@ -1,13 +1,13 @@
 import { ILLMProvider, LLMGenerateOptions } from "./LLMProvider";
 import { ChatMessage } from "../../components/GeminiChatView";
-import { BenchmarkCatalog } from "../catalog/BenchmarkCatalog";
+import { IBenchmarkCatalog } from "../di/interfaces";
 
 export class MockCatalogAssistantProvider implements ILLMProvider {
   readonly name = "Benchmark Intelligence Assistant";
   readonly defaultModel = "catalog-oracle-v1";
-  private readonly catalog: BenchmarkCatalog;
+  private readonly catalog: IBenchmarkCatalog;
 
-  constructor(catalog: BenchmarkCatalog) {
+  constructor(catalog: IBenchmarkCatalog) {
     this.catalog = catalog;
   }
 
@@ -100,45 +100,23 @@ export class MockCatalogAssistantProvider implements ILLMProvider {
       userQuery.includes("saas")
     ) {
       return (
-        `### Arbitraż cenowy: Open-Weights vs Proprietary SaaS\n\n` +
-        `Analiza 11 381 modeli wykazała kolosalną dysproporcję cenową:\n\n` +
-        `• **Mediana kosztu modeli Open-Weights:** $0.525 / 1M tokenów\n` +
-        `• **Mediana kosztu modeli Proprietary SaaS:** $3.000 / 1M tokenów\n` +
-        `• **Średnia oszczędność (Arbitraż):** **82.5% taniej** na korzyść hostowanych modeli open-weights!\n\n` +
-        `### Jak na tym zarabiać w praktyce?\n\n` +
-        `1. **Inteligentny Gateway (Routing):** Kierowanie zapytań wymagających dużego kontekstu do tańszych modeli 1M+, a drogich modeli SaaS używanie wyłącznie jako fallback.\n` +
-        `2. **Cache i kompresja promptów:** Eliminacja powtarzających się prefiksów.\n` +
-        `3. **Lokalny staging z Ollama / vLLM:** Bezkosztowe testowanie agentów przed wypuszczeniem na produkcję.`
+        `### Monetyzacja i Arbitraż Kosztów AI\n\n` +
+        `Katalog pozwala zredukować koszty infrastruktury AI nawet o **90-99%** względem modeli komercyjnych (np. GPT-4o czy Claude 3.5 Sonnet):\n\n` +
+        `1. **Zero-Cost Routing:** Kierowanie powtarzalnych promptów do darmowych modeli z 1M+ kontekstem (np. Google Gemini Exp / Flash z darmowym RPS).\n` +
+        `2. **Lokalny fallback / Open Weights:** Hostowanie lub korzystanie z DeepSeek V3 / Qwen 2.5 po cenach $0.14 - $0.28 / 1M tokenów.\n` +
+        `3. **Degen Proxy:** Wykorzystanie puli wielu rotowanych darmowych kluczy w architekturze round-robin z automatycznym przełączaniem po kodzie HTTP 429.`
       );
     }
 
-    // 5. Specific Search (e.g. DeepSeek, Google, GLM, Alibaba, GitLab)
-    const matches = this.catalog.search(userQuery);
-    if (matches.length > 0 && userQuery.length > 2) {
-      const topMatches = matches.slice(0, 4);
-      return (
-        `### Znaleziono ${matches.length} modeli pasujących do „${lastMsg.content}”:\n\n` +
-        topMatches
-          .map(
-            (m) =>
-              `• **${m.toolName}** (\`${m.slug}\`)\n` +
-              `  Dostawca: \`${m.provider}\` | Rodzina: ${m.modelFamily}\n` +
-              `  Kontekst: ${m.contextWindowTokens.toLocaleString()} | Koszt: $${m.blendedCostPer1M.toFixed(4)}/1M | Free Tier: ${m.isFree ? "Tak" : "Nie"}`
-          )
-          .join("\n\n")
-      );
-    }
-
-    // Default intelligent greeting & capability overview
-    const stats = this.catalog.getStats();
+    // Default conversational reply
     return (
-      `Cześć! Jestem asystentem bazy **Free-Tier & 1M+ Context AI/LLM APIs**.\n\n` +
-      `Mam bezpośredni dostęp do bazy **${stats.totalModels} modeli** od **${stats.providersCount} dostawców** (w tym **${stats.freeTierCount} darmowych** oraz **${stats.millionPlusContextCount} z oknem 1M+**).\n\n` +
-      `W czym mogę pomóc? Możesz zapytać m.in. o:\n` +
-      `• *„Który model ma największy kontekst?”*\n` +
-      `• *„Pokaż najtańsze modele z obsługą Tool Calling i Reasoning”*\n` +
-      `• *„Jak działa arbitraż cenowy Open-Weights vs SaaS?”*\n` +
-      `• *„Wyszukaj modele DeepSeek lub Google”*`
+      `Jestem inteligentnym asystentem bazy **100+ Free-Tier & 1M+ Context AI APIs**.\n\n` +
+      `Mogę odpowiedzieć na Twoje pytania dotyczące:\n` +
+      `• Modeli o największym oknie kontekstowym (np. *„który model ma największy kontekst?”*)\n` +
+      `• Najtańszych modeli z obsługą Tool Calling & Reasoning (np. *„pokaż najtańsze modele do agentów”*)\n` +
+      `• Dostępnych darmowych modeli ($0.00 Free Tier)\n` +
+      `• Strategii arbitrażu cenowego tokenów i ochrony przed rate limitami 429\n\n` +
+      `W czym mogę Ci dzisiaj pomóc?`
     );
   }
 }

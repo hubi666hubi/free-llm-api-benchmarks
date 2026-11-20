@@ -1,4 +1,5 @@
 import { LLMModel } from "../models/LLMModel";
+import type { IBenchmarkCatalog } from "../di/interfaces";
 
 export interface CatalogFilterOptions {
   provider?: string;
@@ -55,7 +56,7 @@ export interface ModelComparison {
   verdict: string;
 }
 
-export class BenchmarkCatalog {
+export class BenchmarkCatalog implements IBenchmarkCatalog {
   private readonly _models: LLMModel[];
 
   constructor(models: LLMModel[] = []) {
