@@ -1,4 +1,4 @@
-import { ChatMessage } from "../../components/GeminiChatView";
+import { ChatMessage } from "../models/ChatMessage";
 import { IChatSession, IClock, IIdGenerator, SessionListener } from "../di/interfaces";
 import { SystemClock, DefaultIdGenerator } from "../di/defaults";
 

@@ -1,5 +1,5 @@
-import { Container } from "./container";
-import { TOKENS } from "./tokens";
+import { Container } from "../core/di/container";
+import { TOKENS } from "../core/di/tokens";
 import {
   IClock,
   IIdGenerator,
@@ -8,13 +8,14 @@ import {
   IBenchmarkCatalog,
   IChatSession,
   ILLMClient,
-} from "./interfaces";
-import { SystemClock, DefaultIdGenerator, FetchHttpClient } from "./defaults";
-import { ChatSession } from "../chat/ChatSession";
-import { GeminiProvider } from "../chat/GeminiProvider";
-import { MockCatalogAssistantProvider } from "../chat/MockCatalogAssistantProvider";
-import { LLMClient } from "../chat/LLMClient";
-import { BenchmarkAssistantAgent } from "../chat/BenchmarkAssistantAgent";
+} from "../core/di/interfaces";
+import { SystemClock, DefaultIdGenerator } from "../core/di/defaults";
+import { FetchHttpClient } from "./FetchHttpClient";
+import { ChatSession } from "../core/chat/ChatSession";
+import { GeminiProvider } from "../core/chat/GeminiProvider";
+import { MockCatalogAssistantProvider } from "../core/chat/MockCatalogAssistantProvider";
+import { LLMClient } from "../core/chat/LLMClient";
+import { BenchmarkAssistantAgent } from "../core/chat/BenchmarkAssistantAgent";
 
 export interface ContainerBootstrapOptions {
   catalog?: IBenchmarkCatalog;

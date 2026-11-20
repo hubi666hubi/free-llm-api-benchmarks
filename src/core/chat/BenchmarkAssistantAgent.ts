@@ -3,10 +3,7 @@ import {
   IChatSession,
   ILLMClient,
 } from "../di/interfaces";
-import { createBenchmarkContainer } from "../di/bootstrap";
-import { TOKENS } from "../di/tokens";
 import { GeminiProvider } from "./GeminiProvider";
-import { MockCatalogAssistantProvider } from "./MockCatalogAssistantProvider";
 import { ILLMProvider } from "./LLMProvider";
 
 export interface BenchmarkAssistantAgentDependencies {
@@ -24,32 +21,12 @@ export class BenchmarkAssistantAgent {
   readonly geminiProvider?: GeminiProvider;
   readonly mockProvider?: ILLMProvider;
 
-  constructor(
-    catalogOrDeps: IBenchmarkCatalog | BenchmarkAssistantAgentDependencies,
-    geminiApiKey?: string
-  ) {
-    if ("session" in catalogOrDeps && "client" in catalogOrDeps) {
-      // Pure Dependency Injection via constructor
-      this.session = catalogOrDeps.session;
-      this.client = catalogOrDeps.client;
-      this.catalog = catalogOrDeps.catalog;
-      this.geminiProvider = catalogOrDeps.geminiProvider;
-      this.mockProvider = catalogOrDeps.mockProvider;
-      return;
-    }
-
-    // Composition root via DI container for default/backwards-compatible wiring
-    const catalog = catalogOrDeps as IBenchmarkCatalog;
-    const container = createBenchmarkContainer({
-      catalog,
-      geminiApiKey,
-    });
-
-    this.catalog = catalog;
-    this.session = container.resolve<IChatSession>(TOKENS.ChatSession);
-    this.geminiProvider = container.resolve<GeminiProvider>(TOKENS.GeminiProvider);
-    this.mockProvider = container.resolve<MockCatalogAssistantProvider>(TOKENS.MockProvider);
-    this.client = container.resolve<ILLMClient>(TOKENS.LLMClient);
+  constructor(deps: BenchmarkAssistantAgentDependencies) {
+    this.session = deps.session;
+    this.client = deps.client;
+    this.catalog = deps.catalog;
+    this.geminiProvider = deps.geminiProvider;
+    this.mockProvider = deps.mockProvider;
   }
 
   setGeminiApiKey(key: string): void {

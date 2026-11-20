@@ -8,12 +8,8 @@ import React, {
   type ReactNode,
 } from "react";
 
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp?: string | Date;
-}
+import type { ChatMessage } from "../core/models/ChatMessage";
+export type { ChatMessage };
 
 export interface GeminiChatViewProps {
   /** Title shown in the top app bar */

@@ -1,4 +1,4 @@
-import { ChatMessage } from "../../components/GeminiChatView";
+import { ChatMessage } from "../models/ChatMessage";
 
 export interface LLMGenerateOptions {
   model?: string;

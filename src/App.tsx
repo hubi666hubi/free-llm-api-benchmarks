@@ -3,6 +3,8 @@ import GeminiChatView, { ChatMessage } from "./components/GeminiChatView";
 import DegenLabView from "./components/DegenLabView";
 import { defaultCatalog } from "./data/catalog";
 import { BenchmarkAssistantAgent } from "./core/chat/BenchmarkAssistantAgent";
+import { createBenchmarkContainer } from "./adapters/bootstrap";
+import { TOKENS } from "./core/di/tokens";
 import { LLMModel } from "./core/models/LLMModel";
 import { ModelComparison } from "./core/catalog/BenchmarkCatalog";
 
@@ -12,7 +14,7 @@ export function App() {
   // Benchmark Agent instance (singleton per app life)
   const agentRef = useRef<BenchmarkAssistantAgent | null>(null);
   if (!agentRef.current) {
-    agentRef.current = new BenchmarkAssistantAgent(defaultCatalog);
+    agentRef.current = createBenchmarkContainer({ catalog: defaultCatalog }).resolve<BenchmarkAssistantAgent>(TOKENS.BenchmarkAgent);
   }
   const agent = agentRef.current;
 

@@ -1,5 +1,5 @@
 import { ILLMProvider, LLMGenerateOptions } from "./LLMProvider";
-import { ChatMessage } from "../../components/GeminiChatView";
+import { ChatMessage } from "../models/ChatMessage";
 import { IBenchmarkCatalog } from "../di/interfaces";
 
 export class MockCatalogAssistantProvider implements ILLMProvider {

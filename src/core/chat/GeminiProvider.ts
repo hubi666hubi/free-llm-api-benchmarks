@@ -1,20 +1,19 @@
 import { ILLMProvider, LLMGenerateOptions } from "./LLMProvider";
-import { ChatMessage } from "../../components/GeminiChatView";
+import { ChatMessage } from "../models/ChatMessage";
 import { IHttpClient, IGeminiConfig } from "../di/interfaces";
-import { FetchHttpClient } from "../di/defaults";
 
 export class GeminiProvider implements ILLMProvider {
   readonly name = "Google Gemini API";
   defaultModel = "gemini-1.5-flash";
   private apiKey: string | null = null;
   private readonly baseUrl: string;
-  private readonly httpClient: IHttpClient;
+  private readonly httpClient?: IHttpClient;
 
   constructor(
     configOrApiKey?: string | IGeminiConfig,
     httpClient?: IHttpClient
   ) {
-    this.httpClient = httpClient || new FetchHttpClient();
+    this.httpClient = httpClient;
 
     if (typeof configOrApiKey === "string") {
       this.apiKey = configOrApiKey.trim() || null;
@@ -46,7 +45,10 @@ export class GeminiProvider implements ILLMProvider {
     }
 
     const model = options?.model || this.defaultModel;
-    const url = `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`;
+    const url = `${this.baseUrl}/models/${model}:generateContent`;
+    if (!this.httpClient) {
+      throw new Error("GeminiProvider: brak wstrzykniętego IHttpClient.");
+    }
 
     // Convert messages to Gemini API format
     const contents = messages
@@ -72,7 +74,7 @@ export class GeminiProvider implements ILLMProvider {
       payload.systemInstruction = systemInstruction;
     }
 
-    const response = await this.httpClient.post(url, payload);
+    const response = await this.httpClient.post(url, payload, { "x-goog-api-key": this.apiKey });
 
     if (!response.ok) {
       const errorText = await response.text();

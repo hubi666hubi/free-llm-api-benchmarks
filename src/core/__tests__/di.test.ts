@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import {
   Container,
   TOKENS,
-  createBenchmarkContainer,
   IClock,
   IIdGenerator,
   IHttpClient,
@@ -10,6 +9,7 @@ import {
   ILLMClient,
   HttpResponse,
 } from "../di";
+import { createBenchmarkContainer } from "../../adapters/bootstrap";
 import { ChatSession } from "../chat/ChatSession";
 import { GeminiProvider } from "../chat/GeminiProvider";
 import { BenchmarkAssistantAgent } from "../chat/BenchmarkAssistantAgent";
@@ -49,6 +49,7 @@ class MockIdGenerator implements IIdGenerator {
 class MockHttpClient implements IHttpClient {
   public lastUrl: string | null = null;
   public lastBody: any = null;
+  public lastHeaders: Record<string, string> | undefined;
   public mockResponse: HttpResponse = {
     ok: true,
     status: 200,
@@ -67,10 +68,11 @@ class MockHttpClient implements IHttpClient {
   async post<T = any>(
     url: string,
     body: unknown,
-    _headers?: Record<string, string>
+    headers?: Record<string, string>
   ): Promise<HttpResponse<T>> {
     this.lastUrl = url;
     this.lastBody = body;
+    this.lastHeaders = headers;
     return this.mockResponse as HttpResponse<T>;
   }
 }
@@ -172,7 +174,8 @@ describe("GeminiProvider with Injected IHttpClient", () => {
     ]);
 
     expect(reply).toBe("Mocked Gemini Response from Injected Client");
-    expect(mockHttp.lastUrl).toContain("https://api.example.com/models/gemini-1.5-flash:generateContent?key=test_key_12345");
+    expect(mockHttp.lastUrl).toBe("https://api.example.com/models/gemini-1.5-flash:generateContent");
+    expect(mockHttp.lastHeaders?.["x-goog-api-key"]).toBe("test_key_12345");
     expect(mockHttp.lastBody.contents[0].parts[0].text).toBe("Tell me a joke");
   });
 

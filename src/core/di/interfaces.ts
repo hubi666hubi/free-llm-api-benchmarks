@@ -1,4 +1,4 @@
-import { ChatMessage } from "../../components/GeminiChatView";
+import { ChatMessage } from "../models/ChatMessage";
 import { LLMGenerateOptions, ILLMProvider } from "../chat/LLMProvider";
 import { LLMModel } from "../models/LLMModel";
 import {
