@@ -117,12 +117,26 @@ export class OllamaProvider implements ILocalLLMProvider {
     }
   }
 
-  isAvailable(): boolean {
+  private isConfigured(): boolean {
     return Boolean(this._enabled && this._baseUrl.length > 0 && this._defaultModel.length > 0);
   }
 
+  /** Configured AND not recently observed as unreachable (so UI/router skip a dead server). */
+  isAvailable(): boolean {
+    if (!this.isConfigured()) return false;
+    const r = this.reachability;
+    if (r && !r.ok && r.url === this._baseUrl && this.clock.timestamp() - r.at < OllamaProvider.REACHABILITY_TTL_MS) {
+      return false;
+    }
+    return true;
+  }
+
+  private markReachable(ok: boolean, error = ""): void {
+    this.reachability = { url: this._baseUrl, at: this.clock.timestamp(), ok, error };
+  }
+
   async sendMessage(messages: ChatMessage[], options?: LLMGenerateOptions): Promise<string> {
-    if (!this.isAvailable()) {
+    if (!this.isConfigured()) {
       throw new Error("OllamaProvider jest wyłączony lub niekompletnie skonfigurowany.");
     }
     if (!this.httpClient) {
@@ -203,6 +217,7 @@ export class OllamaProvider implements ILocalLLMProvider {
       );
     }
 
+    this.markReachable(true);
     const data = await response.json();
     const content = data?.message?.content;
     if (typeof content !== "string" || content.trim().length === 0) {
@@ -303,6 +318,7 @@ export class OllamaProvider implements ILocalLLMProvider {
       const latencyMs = Math.max(0, this.clock.timestamp() - start);
 
       if (!versionRes.ok && !tagsRes.ok) {
+        this.markReachable(false, `HTTP ${versionRes.status}`);
         return {
           ok: false,
           provider: this.name,
@@ -331,6 +347,7 @@ export class OllamaProvider implements ILocalLLMProvider {
         }
       }
 
+      this.markReachable(true);
       return {
         ok: true,
         provider: this.name,
@@ -339,10 +356,12 @@ export class OllamaProvider implements ILocalLLMProvider {
         modelsCount,
       };
     } catch (err: any) {
+      const failLatency = Math.max(0, this.clock.timestamp() - start);
+      this.markReachable(false, `Brak połączenia z ${this._baseUrl}`);
       return {
         ok: false,
         provider: this.name,
-        latencyMs: Math.max(0, this.clock.timestamp() - start),
+        latencyMs: failLatency,
         error: `Brak połączenia z ${this._baseUrl} (${err?.message || String(err)})`,
       };
     }

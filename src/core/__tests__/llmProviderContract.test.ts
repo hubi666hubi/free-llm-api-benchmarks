@@ -270,6 +270,24 @@ describe("OllamaProvider Hexagonal Adapter", () => {
     expect(http.getCalls[0].options?.timeoutMs).toBe(1500);
   });
 
+  it("reports unavailable after a failed probe so router/UI skip it, then recovers after TTL", async () => {
+    let up = false;
+    const http = new FakeHttpClient({
+      get: async () => {
+        if (!up) throw new Error("down");
+        return jsonResponse({ version: "1" });
+      },
+    });
+    const clock = new DeterministicClock(0, 1);
+    const ollama = new OllamaProvider({}, http, clock);
+    expect(ollama.isAvailable()).toBe(true);
+    await expect(ollama.sendMessage([{ id: "1", role: "user", content: "x" }])).rejects.toThrow();
+    expect(ollama.isAvailable()).toBe(false);
+    up = true;
+    (clock as any).ms += OllamaProvider.REACHABILITY_TTL_MS + 1;
+    expect(ollama.isAvailable()).toBe(true);
+  });
+
   it("throws clear error when IHttpClient is not injected", async () => {
     const ollama = new OllamaProvider({ enabled: true });
     await expect(
