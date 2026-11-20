@@ -1,5 +1,6 @@
 export * from "./models/LLMModel";
 export * from "./catalog/BenchmarkCatalog";
+export * from "./catalog/CatalogRepository";
 export * from "./chat/ChatSession";
 export * from "./chat/LLMProvider";
 export * from "./chat/GeminiProvider";

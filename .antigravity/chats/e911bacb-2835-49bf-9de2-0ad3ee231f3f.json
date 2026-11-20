@@ -184,6 +184,30 @@
       "created_at": "2026-11-20T17:41:14.365Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "1c1c7e4d-6e83-400c-883e-7f907c0f95a1",
+      "role": "agent",
+      "content": "Zrobione: krok 1 (czysty rdzeń) i część kroku 3 (klucz Gemini w nagłówku). Testy (55), typecheck i build przechodzą, a zmiany są zapisane w repozytorium.\n\n**Co masz teraz**\n- **Rdzeń bez zależności od UI.** Typ `ChatMessage` leży w `src/core/models/ChatMessage.ts`. `GeminiChatView` tylko go re-eksportuje, więc `core/` nie importuje już Reacta ani `components/`.\n- **Nowa warstwa `src/adapters/`.** Są w niej `FetchHttpClient` (jedyne miejsce z globalnym `fetch`) i `createBenchmarkContainer` (composition root). W `core/di/` zostały interfejsy, kontener, tokeny oraz `SystemClock` i `DefaultIdGenerator`.\n- **Czyste wstrzykiwanie.**\n  - `BenchmarkAssistantAgent` przyjmuje tylko `{ session, client, catalog, ... }`. Stary wariant `new BenchmarkAssistantAgent(catalog, key)` usunąłem, bo ciągnął adaptery do rdzenia.\n  - `App.tsx` składa agenta przez kontener z `adapters/`.\n  - `GeminiProvider` nie ma już domyślnego `fetch`. Bez wstrzykniętego `IHttpClient` rzuca czytelny błąd.\n- **Klucz Gemini w nagłówku `x-goog-api-key`** zamiast w URL. Nie trafia już do logów ani historii. Adres wywołania to teraz `.../models/<model>:generateContent`.\n- **Test blokujący przecieki** (`core/__tests__/purity.test.ts`). Dla każdego pliku w `core/` sprawdza, że nie ma importów z `components/`, `react`, `adapters/` ani wywołań globalnego `fetch`. Złamanie reguły wywali testy.\n\n**Nie zrobiłem jeszcze**\n- Wymiennego źródła katalogu (plik lub URL, walidacja schematem).\n- Lokalnych adapterów: Ollama i magazynu kluczy z szyfrowaniem.\n- Wydzielenia `core` jako osobnego pakietu npm.\n- Synchronizacji ze schematem w Pythonie.\n- Kontraktowych testów adapterów.\n\n**Następny krok:** port `CatalogRepository` z adapterami CSV, JSON i URL oraz walidacją. To domyka suwerenność danych. Mam zacząć od niego?",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "caee32cc-cfe5-4d43-9f23-0b1fc5b3b8d7",
+      "created_at": "2026-11-20T17:42:15.462Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "5708dcfa-5e03-468c-90a1-b84e5c543a7e",
+      "role": "user",
+      "content": "Tak",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-20T17:56:18.298Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
