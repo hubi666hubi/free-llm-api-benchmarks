@@ -604,6 +604,54 @@
       "created_at": "2026-11-21T14:45:44.138Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "b1238ddb-7622-481f-9762-3d910b648117",
+      "role": "user",
+      "content": "Dawaj testuj",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-21T19:49:07.589Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "24cee300-c457-457c-bb61-009a4a5cacf8",
+      "role": "agent",
+      "content": "Najpierw sprawdzę, co jest w projekcie i jak się go testuje.\nWszystkie testy przechodzą, niczego nie zmieniałem.\n\n- **TypeScript (`npm run typecheck`):** bez błędów.\n- **Vitest (`npm test`):** 91 z 91 testów zaliczonych, w 8 plikach.\n- **Python (`python3 -m unittest python.test_catalog`):** 11 z 11 testów zaliczonych. Pytest nie jest zainstalowany, więc użyłem `unittest`.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "b1238ddb-7622-481f-9762-3d910b648117",
+      "created_at": "2026-11-21T19:49:23.329Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "894caba1-b6df-4466-9f79-512e082892fe",
+      "role": "user",
+      "content": "Dobra  nie stawaj",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-21T19:58:51.096Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "b9bb2628-808a-4759-b948-9f35a9f5f431",
+      "role": "agent",
+      "content": "Kontynuuję testy. Zostało sprawdzić build produkcyjny.\nBuild produkcyjny przechodzi: `tsc` bez błędów, Vite zbudował 49 modułów w 1,19 s. Razem z poprzednimi wynikami (typecheck, Vitest, testy Pythona) wszystko jest zielone.\n\nNie zmieniłem żadnego pliku projektu. Git pokazuje tylko zmiany w `.antigravity/`, które nie pochodzą z moich edycji.\n\nNapisz, co mam zrobić dalej. Mogę na przykład dopisać testy albo sprawdzić dane w CSV.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "894caba1-b6df-4466-9f79-512e082892fe",
+      "created_at": "2026-11-21T19:59:00.925Z",
+      "sender": "macOS",
+      "is_cancelled": false
     }
   ]
 }
