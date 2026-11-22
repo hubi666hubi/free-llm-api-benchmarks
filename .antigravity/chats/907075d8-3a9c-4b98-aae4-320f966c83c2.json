@@ -364,6 +364,30 @@
       "created_at": "2026-11-22T22:43:16.289Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "fd677eb6-fd28-4dc7-8dec-f3d122679d31",
+      "role": "agent",
+      "content": "jsdom nie implementuje `scrollIntoView`, więc to ograniczenie środowiska testowego, nie błąd aplikacji. Dodaję stub w teście.\nZrobiłem punkty 1 i 3. Punkt 2 czeka na Twoje decyzje.\n\n**1. Weryfikacja interfejsu**\n- Chromium w tym środowisku się zawiesza, więc przeglądarki nie użyłem.\n- Zamiast tego dodałem testy renderowania w jsdom: [App.smoke.test.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/__tests__/App.smoke.test.tsx). Przełączają wszystkie zakładki i otwierają trzy modale (porównanie, snippet, ustawienia).\n- W teście musiałem zastąpić `scrollIntoView`, bo jsdom go nie ma. To ograniczenie środowiska testowego, nie błąd w aplikacji.\n- W `package.json` doszły dwie devDependencies: `jsdom` i `@testing-library/react`.\n- Wynik: 102 z 102 testów przechodzi (było 98), `tsc` bez błędów, build działa.\n- Nie sprawdziłem wyglądu ani klikania w prawdziwej przeglądarce. Przejrzyj podgląd wizualnie.\n\n**3. Testy Pythona**\n- Przyczyną była synchronizacja danych, a nie moje zmiany. Commit `6e92774` (\"chore(data): sync … Top-100 sample\") podmienił `free_tier_llm_apis_top100.csv` na inny zestaw. Znikł z niego `google/gemini-exp-1206`, na którym opierają się testy.\n- Plik jest nadpisywany automatycznie, więc testy nie powinny od niego zależeć.\n- Dodałem stały fixture `python/fixtures/top100_fixture.csv` (zestaw z commita `f053171`) i przestawiłem na niego [test_catalog.py](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/python/test_catalog.py).\n- Wynik: 11 z 11 testów przechodzi, a aktualny CSV nadal ładuje się poprawnie (100 modeli).\n- Aplikacja TS dalej używa starego zestawu danych z `src/data/rawCsv.ts`, który różni się od aktualnego CSV. Zostawiłem to bez zmian.\n\n**2. Porządki, które wymagają Twojej decyzji**\n- Czy usunąć `.antigravity/` z gita i dodać do `.gitignore`? Czaty są teraz w publicznym repo.\n- Czy poprawić README: Product #3 jako „coming soon” i opis metody liczenia „82.5% cheaper”?\n- Czy dodać `LICENSE`, a jeśli tak, jaką (np. MIT)?",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "d393a224-c869-47b8-b17e-e112ec921012",
+      "created_at": "2026-11-22T22:45:02.753Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "9354780f-94f2-4c26-9878-440d053592dd",
+      "role": "user",
+      "content": "Go ahead with the plan.",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-22T22:46:55.976Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
