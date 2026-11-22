@@ -5,10 +5,12 @@
 > - **Free-Tier Models:** `1,703` | **1M+ Context Models:** `4,926`
 > - **Median Cost Arbitrage:** Open-Weights (`$0.525/1M`) vs Proprietary SaaS (`$3.000/1M`) — **82.5% cheaper**
 
-### Get the Full Warehouse & Commercial Kits
-- **Product #1 — Full 11,381-Model Pro Warehouse ($49):** https://oraclepantheon.gumroad.com/l/brrfby
+### Live Interactive Tools & Get the Full Warehouse
+- **Interactive SEO Benchmark Portal:** https://pantheon-oracle.onrender.com/free-llm-apis
+- **Interactive Token Cost & 82.5% Arbitrage Calculator:** https://pantheon-oracle.onrender.com/llm-token-cost-calculator
+- **Product #1 — Full 11,381-Model Pro Warehouse ($49 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/brrfby
 - **Product #2 — Top 100 Free-Tier LLM APIs Lead Magnet ($0+):** https://oraclepantheon.gumroad.com/l/xybabz
-- **Product #3 — W.F.P. B2B Lead Scoring & Anti-Babol Kit ($79):** https://oraclepantheon.gumroad.com/l/lhkol
+- **Product #3 — W.F.P. B2B Lead Scoring & Anti-Babol Kit + `DataOracleLabs_Engine.exe` ($79 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/lhkol
 - **Data Oracle Labs Storefront:** https://oraclepantheon.gumroad.com/
 - **Public GitHub Magnet Repo:** https://github.com/hubi666hubi/free-llm-api-benchmarks
 
