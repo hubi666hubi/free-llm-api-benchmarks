@@ -5,6 +5,7 @@ import { defaultCatalog } from "./data/catalog";
 import { BenchmarkAssistantAgent } from "./core/chat/BenchmarkAssistantAgent";
 import { createBenchmarkContainer } from "./adapters/bootstrap";
 import { useSettings } from "./state";
+import { filterModels } from "./core/catalog/filterModels";
 import { TOKENS } from "./core/di/tokens";
 import { LLMModel } from "./core/models/LLMModel";
 import { ModelComparison } from "./core/catalog/BenchmarkCatalog";
@@ -140,17 +141,18 @@ export function App() {
 
   // Filtered models for catalog tab
   const filteredModels = useMemo(() => {
-    return defaultCatalog
-      .filter({
-        provider: selectedProvider || undefined,
-        minContext: filterMillionPlus ? 1_000_000 : 0,
+    return filterModels(
+      defaultCatalog,
+      {
+        query: searchQuery,
+        provider: selectedProvider,
+        millionPlus: filterMillionPlus,
         requireTools: filterTools,
         requireReasoning: filterReasoning,
-      })
-      .filter((m) => {
-        if (filterParetoOnly && !paretoSlugs.has(m.slug)) return false;
-        return m.matchesQuery(searchQuery);
-      });
+        paretoOnly: filterParetoOnly,
+      },
+      paretoSlugs
+    );
   }, [searchQuery, selectedProvider, filterMillionPlus, filterTools, filterReasoning, filterParetoOnly, paretoSlugs]);
 
   // Providers list for filter dropdown

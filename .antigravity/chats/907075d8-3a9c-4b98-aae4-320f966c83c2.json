@@ -220,6 +220,30 @@
       "created_at": "2026-11-22T22:35:15.889Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "5fb13636-2126-4a83-81f4-29bb8b5867ca",
+      "role": "agent",
+      "content": "Kroki 2 i 3 są zrobione. Testy przechodzą (93 z 93), a `tsc && vite build` działa. Aplikacji nie odpaliłem w przeglądarce, więc zachowanie w UI jest niesprawdzone.\n\n**Zmiany**\n- [main.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/main.tsx): `<App />` jest owinięty w `SettingsProvider`. Repozytorium ustawień Ollamy jest tworzone tutaj.\n- [App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx):\n  - Usunąłem 5 `useState` (klucz Gemini oraz pola Ollamy: włączona, URL, model, `numCtx`) i lokalne tworzenie repozytorium.\n  - Te same nazwy (`ollamaUrl`, `setOllamaUrl` itd.) są teraz cienkimi odczytami i wrapperami na `useSettings()`, więc JSX zostaje bez zmian.\n  - Przycisk „Zapisz i zastosuj” woła `saveOllama()`, więc zapis nadal następuje tylko po kliknięciu.\n  - Ollama jest konfigurowana przy starcie, jeśli była włączona w zapisanych ustawieniach.\n\nKlucz Gemini zostaje tylko w pamięci, bo nie ustaliliśmy `sessionStorage`.\n\nNastępny logiczny krok to zakładka Catalog, czyli `filterModels` z poprzedniej rekomendacji. Napisz, czy go robić.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "b8c3cc25-c13e-48e5-98d3-a36da862457a",
+      "created_at": "2026-11-22T22:35:46.376Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "bc476b46-0581-4b3d-85eb-fd69b380bef5",
+      "role": "user",
+      "content": "logika --- rób",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-22T22:36:43.472Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
