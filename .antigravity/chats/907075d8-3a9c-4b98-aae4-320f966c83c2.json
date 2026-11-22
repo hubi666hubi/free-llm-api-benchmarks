@@ -316,6 +316,54 @@
       "created_at": "2026-11-22T22:41:08.690Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "9baf5acc-97c7-4226-b743-5e95d1612e31",
+      "role": "agent",
+      "content": "Trzy modale są wydzielone z `App.tsx` do osobnych komponentów. `tsc --noEmit` nie zgłasza błędów, testy przechodzą (98 z 98), a build działa. Aplikacji nie odpaliłem w przeglądarce, więc działanie modali w UI jest niesprawdzone.\n\n**Nowe pliki w `src/components/modals/`**\n- `SnippetModal.tsx` (104 linie): generator kodu API.\n- `CompareModal.tsx` (165 linii): porównanie modeli.\n- `SettingsModal.tsx` (194 linie): ustawienia silnika AI.\n\nJSX przeniosłem bez zmian. Warunki wyświetlania (`snippetModel && …` itd.) zostały w `App.tsx`. Ciało przycisku „Zapisz i zastosuj” przeniosłem do funkcji `handleApplySettings` w `App.tsx` i przekazuję je modalowi jako `onApply`. Zachowanie jest to samo: konfiguracja agenta, zapis przez `saveOllama()` i zamknięcie modala.\n\n`App.tsx` ma teraz 355 linii (było 1089 na początku refaktoru). Zostały w nim nagłówek, nawigacja zakładek i zakładka czatu.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "d8ef6dd7-ed3e-413a-982f-381d481aaa21",
+      "created_at": "2026-11-22T22:41:51.081Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "09223cf3-342f-43ce-b76c-7c35a36f32f4",
+      "role": "user",
+      "content": "co dalej?",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-22T22:42:50.790Z",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "a7da4e08-d581-4869-b53f-0dd3b75056a8",
+      "role": "agent",
+      "content": "Refaktor architektury UI jest w zasadzie skończony. Poniżej lista tego, co zostało, od najważniejszego.\n\n**Do zrobienia**\n1. **Weryfikacja w przeglądarce.** Wszystkie zmiany sprawdziłem tylko przez `tsc`, testy i build. Nikt jeszcze nie kliknął zakładek ani modali (Catalog, Arbitrage, Providers, Snippet, Compare, Settings). To najpilniejsze, bo przenosiłem JSX skryptami.\n2. **Porządki z pierwszego planu, które czekają na Twoje decyzje.**\n   - `.antigravity/` jest nadal w gicie, więc czaty są w publicznym repo. Mogę je usunąć z gita i dodać do `.gitignore`.\n   - README ma dwie sporne rzeczy: Product #3 nie istnieje w repo, a „82.5% cheaper” porównuje mediany różnych klas modeli. Mogę oznaczyć Product #3 jako „coming soon” i opisać metodę liczenia.\n   - W repo nie ma `LICENSE`. Napisz, czy dodać, i jaką (np. MIT).\n3. **Testy Pythona.** 5 niepowodzeń i 2 błędy na 11 testów, na danych (np. brak modelu `google/gemini-exp-1206`). Nie wiem, czy były przed moimi zmianami. Mogę to sprawdzić i naprawić dane albo testy.\n4. **Drobne zmiany w kodzie.**\n   - Wydzielić zakładkę czatu (`ChatTab`).\n   - Przenieść stany filtrów do hooka `useCatalogFilters`.\n   - Dodać testy komponentów (np. z Testing Library), których dziś nie ma.\n\nProponuję zacząć od punktu 1, potem 3 i 2. Napisz, od czego zaczynam, albo odpowiedz na pytania o `.antigravity/`, README i `LICENSE`.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "09223cf3-342f-43ce-b76c-7c35a36f32f4",
+      "created_at": "2026-11-22T22:42:58.444Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "d393a224-c869-47b8-b17e-e112ec921012",
+      "role": "user",
+      "content": "tak jak napisales kolejnosc /start",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-22T22:43:16.289Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }

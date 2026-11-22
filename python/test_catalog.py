@@ -6,7 +6,8 @@ import unittest
 from pathlib import Path
 from python.benchmark_catalog import BenchmarkCatalog, LLMModel, CostArbitrageEngine, generate_degen_proxy_script
 
-CSV_PATH = Path(__file__).resolve().parent.parent / "free_tier_llm_apis_top100.csv"
+# Deterministic fixture: the root CSV is auto-synced with live data, so tests must not depend on it.
+CSV_PATH = Path(__file__).resolve().parent / "fixtures" / "top100_fixture.csv"
 
 
 class TestBenchmarkCatalog(unittest.TestCase):
