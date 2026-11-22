@@ -1,12 +1,10 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import GeminiChatView, { ChatMessage } from "./components/GeminiChatView";
+import { useState, useMemo } from "react";
+import GeminiChatView from "./components/GeminiChatView";
 import DegenLabView from "./components/DegenLabView";
 import { defaultCatalog } from "./data/catalog";
-import { BenchmarkAssistantAgent } from "./core/chat/BenchmarkAssistantAgent";
-import { createBenchmarkContainer } from "./adapters/bootstrap";
 import { useSettings } from "./state";
+import { useChatAgent } from "./hooks/useChatAgent";
 import { filterModels } from "./core/catalog/filterModels";
-import { TOKENS } from "./core/di/tokens";
 import { LLMModel } from "./core/models/LLMModel";
 import { ModelComparison } from "./core/catalog/BenchmarkCatalog";
 import {
@@ -18,26 +16,10 @@ import {
 export function App() {
   const [activeTab, setActiveTab] = useState<"chat" | "catalog" | "arbitrage" | "providers" | "degen">("chat");
 
-  // Benchmark Agent instance (singleton per app life)
-  const agentRef = useRef<BenchmarkAssistantAgent | null>(null);
-  if (!agentRef.current) {
-    agentRef.current = createBenchmarkContainer({ catalog: defaultCatalog }).resolve<BenchmarkAssistantAgent>(TOKENS.BenchmarkAgent);
-  }
-  const agent = agentRef.current;
-
   // Global settings (Ollama persisted via SettingsProvider -> ISettingsStore)
   const { state: settings, dispatch, saveOllama } = useSettings();
-  const initialOllamaApplied = useRef(false);
-  if (!initialOllamaApplied.current) {
-    initialOllamaApplied.current = true;
-    if (settings.ollama.enabled) {
-      agent.configureOllama({ ...settings.ollama, enabled: true });
-    }
-  }
+  const { agent, messages, isLoading, send: handleSendMessage } = useChatAgent(defaultCatalog, settings.ollama);
 
-  // Chat State
-  const [messages, setMessages] = useState<ChatMessage[]>(agent.session.messages);
-  const [isLoading, setIsLoading] = useState(false);
   const geminiApiKey = settings.geminiApiKey;
   const setGeminiApiKey = (key: string) => dispatch({ type: "gemini/setKey", key });
   const ollamaEnabled = settings.ollama.enabled;
@@ -87,14 +69,6 @@ export function App() {
   const [compareModelB, setCompareModelB] = useState<LLMModel | null>(null);
   const [showCompareModal, setShowCompareModal] = useState(false);
 
-  // Subscribe to session changes
-  useEffect(() => {
-    const unsubscribe = agent.session.subscribe((updatedMessages) => {
-      setMessages(updatedMessages);
-    });
-    return unsubscribe;
-  }, [agent]);
-
   // Catalog Explorer State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("");
@@ -110,16 +84,6 @@ export function App() {
   // Compute Pareto Frontier once
   const paretoFrontier = useMemo(() => defaultCatalog.getParetoFrontier(), []);
   const paretoSlugs = useMemo(() => new Set(paretoFrontier.map((m) => m.slug)), [paretoFrontier]);
-
-  // Send message handler
-  const handleSendMessage = async (text: string) => {
-    setIsLoading(true);
-    try {
-      await agent.ask(text);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Ask about a specific model from catalog
   const handleAskAboutModel = (model: LLMModel) => {

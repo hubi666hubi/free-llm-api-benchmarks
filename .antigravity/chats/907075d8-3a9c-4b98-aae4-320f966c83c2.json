@@ -244,6 +244,30 @@
       "created_at": "2026-11-22T22:36:43.472Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "c2d1b746-85b8-4ea8-af37-cf2942257b72",
+      "role": "agent",
+      "content": "Wyciągnąłem logikę filtrowania katalogu z `App.tsx` do osobnej, czystej funkcji. Testy przechodzą (98 z 98, było 93), a `tsc && vite build` działa. Aplikacji nie odpaliłem w przeglądarce.\n\n- **[filterModels.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/catalog/filterModels.ts)** (nowy):\n  - `ModelFilters` i `DEFAULT_MODEL_FILTERS`.\n  - `filterModels(catalog, filters, paretoSlugs)`, czyli ta sama logika co wcześniej: provider, kontekst 1M+, tools, reasoning, Pareto i wyszukiwanie tekstowe.\n- **[App.tsx](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/App.tsx):** `useMemo` z `filteredModels` woła teraz `filterModels`. Stany filtrów i JSX zostały bez zmian.\n- **[filterModels.test.ts](https://github.com/hubi666hubi/free-llm-api-benchmarks/blob/main/src/core/__tests__/filterModels.test.ts)** (nowy): 5 testów (domyślne filtry, provider, kontekst 1M+, Pareto).\n\nNastępny krok z rekomendacji to hook `useChatAgent` i wydzielenie zakładek (`CatalogTab` itd.). Napisz, czy robić.",
+      "status": "completed",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "bc476b46-0581-4b3d-85eb-fd69b380bef5",
+      "created_at": "2026-11-22T22:37:09.563Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "f7f03b6b-0f36-4fc4-983b-0b078a965b3b",
+      "role": "user",
+      "content": "RÓB",
+      "status": "pending",
+      "model": "claude-sonnet-5-5-medium",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-22T22:37:38.266Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
