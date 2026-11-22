@@ -4,8 +4,7 @@ import DegenLabView from "./components/DegenLabView";
 import { defaultCatalog } from "./data/catalog";
 import { BenchmarkAssistantAgent } from "./core/chat/BenchmarkAssistantAgent";
 import { createBenchmarkContainer } from "./adapters/bootstrap";
-import { LocalStorageSettingsStore } from "./adapters/LocalStorageSettingsStore";
-import { OllamaSettingsRepository } from "./core/settings/OllamaSettings";
+import { useSettings } from "./state";
 import { TOKENS } from "./core/di/tokens";
 import { LLMModel } from "./core/models/LLMModel";
 import { ModelComparison } from "./core/catalog/BenchmarkCatalog";
@@ -25,31 +24,29 @@ export function App() {
   }
   const agent = agentRef.current;
 
-  // Persisted Ollama settings (port: ISettingsStore, adapter: localStorage)
-  const settingsRepoRef = useRef<OllamaSettingsRepository | null>(null);
-  const savedOllamaRef = useRef<ReturnType<OllamaSettingsRepository["load"]> | null>(null);
-  if (!settingsRepoRef.current) {
-    settingsRepoRef.current = new OllamaSettingsRepository(new LocalStorageSettingsStore());
-    savedOllamaRef.current = settingsRepoRef.current.load();
-    if (savedOllamaRef.current.enabled) {
-      agentRef.current.configureOllama({
-        baseUrl: savedOllamaRef.current.baseUrl,
-        model: savedOllamaRef.current.model,
-        numCtx: savedOllamaRef.current.numCtx,
-        enabled: true,
-      });
+  // Global settings (Ollama persisted via SettingsProvider -> ISettingsStore)
+  const { state: settings, dispatch, saveOllama } = useSettings();
+  const initialOllamaApplied = useRef(false);
+  if (!initialOllamaApplied.current) {
+    initialOllamaApplied.current = true;
+    if (settings.ollama.enabled) {
+      agent.configureOllama({ ...settings.ollama, enabled: true });
     }
   }
-  const savedOllama = savedOllamaRef.current!;
 
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>(agent.session.messages);
   const [isLoading, setIsLoading] = useState(false);
-  const [geminiApiKey, setGeminiApiKey] = useState("");
-  const [ollamaEnabled, setOllamaEnabled] = useState(savedOllama.enabled);
-  const [ollamaUrl, setOllamaUrl] = useState(savedOllama.baseUrl);
-  const [ollamaModel, setOllamaModel] = useState(savedOllama.model);
-  const [ollamaNumCtx, setOllamaNumCtx] = useState(savedOllama.numCtx);
+  const geminiApiKey = settings.geminiApiKey;
+  const setGeminiApiKey = (key: string) => dispatch({ type: "gemini/setKey", key });
+  const ollamaEnabled = settings.ollama.enabled;
+  const ollamaUrl = settings.ollama.baseUrl;
+  const ollamaModel = settings.ollama.model;
+  const ollamaNumCtx = settings.ollama.numCtx;
+  const setOllamaEnabled = (enabled: boolean) => dispatch({ type: "ollama/patch", patch: { enabled } });
+  const setOllamaUrl = (baseUrl: string) => dispatch({ type: "ollama/patch", patch: { baseUrl } });
+  const setOllamaModel = (model: string) => dispatch({ type: "ollama/patch", patch: { model } });
+  const setOllamaNumCtx = (numCtx: number) => dispatch({ type: "ollama/patch", patch: { numCtx } });
   const [ollamaHealth, setOllamaHealth] = useState<ProviderHealth | null>(null);
   const [ollamaLocalModels, setOllamaLocalModels] = useState<LocalModelInfo[]>([]);
   const [isCheckingOllama, setIsCheckingOllama] = useState(false);
@@ -1065,12 +1062,7 @@ export function App() {
                     numCtx: ollamaNumCtx,
                     enabled: ollamaEnabled,
                   });
-                  settingsRepoRef.current?.save({
-                    enabled: ollamaEnabled,
-                    baseUrl: ollamaUrl,
-                    model: ollamaModel,
-                    numCtx: ollamaNumCtx,
-                  });
+                  saveOllama();
                   setProviderTick((t) => t + 1);
                   setShowSettingsModal(false);
                 }}
