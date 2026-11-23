@@ -4,14 +4,18 @@
 > - **Total Models Indexed:** `11,381` across `359` providers
 > - **Free-Tier Models:** `1,703` | **1M+ Context Models:** `4,926`
 > - **Median Cost Arbitrage:** Open-Weights (`$0.525/1M`) vs Proprietary SaaS (`$3.000/1M`) — **82.5% cheaper**
-> - *Method: ratio of the median blended price (3:1 input:output) of open-weights models vs. proprietary SaaS models in this dataset. The two groups contain different model classes, so treat it as a market-level indicator, not a like-for-like saving.*
+
+### Flagship Release: Meta-Tactical Hub OS v1.0 ($99 Turnkey AI Agency & Data Operating System)
+- **Meta-Tactical Hub OS v1.0 ($99 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/meta-hub-os
+  - 1-Click Python Notion Provisioner (`uv run python installer.py`) that builds your entire 3-Database AI Agency OS (M1 AI/LLM Catalog DB, M2 B2B Partner & Tender CRM DB, M3 Marketing Hub + Engineering SOPs) in under 60 seconds.
 
 ### Live Interactive Tools & Get the Full Warehouse
 - **Interactive SEO Benchmark Portal:** https://pantheon-oracle.onrender.com/free-llm-apis
 - **Interactive Token Cost & 82.5% Arbitrage Calculator:** https://pantheon-oracle.onrender.com/llm-token-cost-calculator
+- **Product #4 (Flagship) — Meta-Tactical Hub OS: Autonomous AI Agency & Data Operating System ($99 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/meta-hub-os
 - **Product #1 — Full 11,381-Model Pro Warehouse ($49 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/brrfby
 - **Product #2 — Top 100 Free-Tier LLM APIs Lead Magnet ($0+):** https://oraclepantheon.gumroad.com/l/xybabz
-- **Product #3 (sold separately on Gumroad; its contents are not part of this repository) — W.F.P. B2B Lead Scoring & Anti-Babol Kit + `DataOracleLabs_Engine.exe` ($79 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/lhkol
+- **Product #3 — W.F.P. B2B Lead Scoring & Anti-Babol Kit + `DataOracleLabs_Engine.exe` ($79 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/lhkol
 - **Data Oracle Labs Storefront:** https://oraclepantheon.gumroad.com/
 - **Public GitHub Magnet Repo:** https://github.com/hubi666hubi/free-llm-api-benchmarks
 
