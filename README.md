@@ -10,8 +10,8 @@
   - 1-Click Python Notion Provisioner (`uv run python installer.py`) that builds your entire 3-Database AI Agency OS (M1 AI/LLM Catalog DB, M2 B2B Partner & Tender CRM DB, M3 Marketing Hub + Engineering SOPs) in under 60 seconds.
 
 ### Live Interactive Tools & Get the Full Warehouse
-- **Interactive SEO Benchmark Portal:** https://pantheon-oracle.onrender.com/free-llm-apis
-- **Interactive Token Cost & 82.5% Arbitrage Calculator:** https://pantheon-oracle.onrender.com/llm-token-cost-calculator
+- **Interactive SEO Benchmark Portal:** https://gen-lang-client-0036518667.web.app/free-llm-apis
+- **Interactive Token Cost & 82.5% Arbitrage Calculator:** https://gen-lang-client-0036518667.web.app/llm-token-cost-calculator
 - **Product #4 (Flagship) — Meta-Tactical Hub OS: Autonomous AI Agency & Data Operating System ($99 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/meta-hub-os
 - **Product #1 — Full 11,381-Model Pro Warehouse ($49 — use code `ORACLE20` for -20%):** https://oraclepantheon.gumroad.com/l/brrfby
 - **Product #2 — Top 100 Free-Tier LLM APIs Lead Magnet ($0+):** https://oraclepantheon.gumroad.com/l/xybabz
