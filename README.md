@@ -1,3 +1,5 @@
+> ⚡ **NEW — AI2027 BigQuery `AI.FORECAST` (TimesFM) Report & NIS2 Suite Live:** [Read the AI2027 Token Deflation Forecast](https://gen-lang-client-0036518667.web.app/ai2027) • [AI2027 Sovereign Suite ($149, code `ORACLE20`)](https://oraclepantheon.gumroad.com/l/ai2027-suite) • [Meta-Tactical Hub OS ($99)](https://oraclepantheon.gumroad.com/l/meta-hub-os) • [Oracle Pantheon Labs Profile](https://github.com/hubi666hubi)
+
 # Free-Tier & 1M+ Context AI/LLM APIs Benchmark (11,381 Models Indexed)
 
 > Programmatically normalized from OpenRouter, LiteLLM, models.dev & Ollama using **Polars + DuckDB**.
